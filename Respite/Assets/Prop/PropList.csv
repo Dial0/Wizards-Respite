@@ -1,3 +1,4 @@
 Name,Mesh,Texture
 TestCube,test_cube.mesh,CubeTest.png
+Cursor,test_cube.mesh,Cursor.png
 TestPlane,test_plane.mesh,CubeTest.png

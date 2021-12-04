@@ -171,44 +171,64 @@ const bgfx::Memory* readTexture(const char* filename) {
 	return mem;
 }
 
-int addStaticRenderObj(StaticProp newProp, StaticRenderObjs& staticRenderObjs)
+int BuildRenobjsFromMap(MapChunk* TestChunk, StaticProp TestCube, StaticRenderObjs& staticRenderObjs)
 {
-	Position pos;
-	pos.position.x = 0;
-	pos.position.y = 0;
-	pos.position.z = 0;
+	for (size_t i = 0; i < chunkMapsize; i++)
+		{
+			bool check = TestChunk->BlockMap[i] == block_type::dirt;
+			if (check)
+			{
+				MapLoc chunkloc = to3D(i);
 
-	staticRenderObjs.pos.push_back(pos);
+				Position pos;
+				pos.position.x = chunkloc.x;
+				pos.position.y = chunkloc.y;
+				pos.position.z = chunkloc.z;
 
-
-	float* mtx = new float[16];
-
-	bx::mtxRotateX(mtx, 0.0f);
-
-	// position x,y,z
-	//mtx[12] = 0;
-	//mtx[13] = 0;
-	//mtx[14] = 0;
-
-	float scalemtx[16];
-	bx::mtxScale(scalemtx, 1.0);
+				staticRenderObjs.pos.push_back(pos);
 
 
-	MatrixTransformStruct test;
-	//bx::mtxRotateZ(mtx, bx::kPi);
-	bx::mtxMul(test.mtx, scalemtx, mtx);
+				float mtx[16];
+
+				bx::mtxRotateX(mtx, 0.0f);
+
+				// position x,y,z
+				mtx[12] = pos.position.x * 2;
+				mtx[13] = pos.position.y * 2;
+				mtx[14] = pos.position.z * 2;
+
+				float scalemtx[16];
+				bx::mtxScale(scalemtx, 1.0);
 
 
-
-	staticRenderObjs.matrixTransform.push_back(test);
-	staticRenderObjs.vbh.push_back(newProp.p_Meshcontainer.vbh);
-	staticRenderObjs.ibh.push_back(newProp.p_Meshcontainer.ibh);
-	staticRenderObjs.texh.push_back(newProp.p_texture.texh);
+				MatrixTransformStruct test;
+				//bx::mtxRotateZ(mtx, bx::kPi);
+				bx::mtxMul(test.mtx, scalemtx, mtx);
+				staticRenderObjs.matrixTransform.push_back(test);
+				staticRenderObjs.vbh.push_back(TestCube.p_Meshcontainer.vbh);
+				staticRenderObjs.ibh.push_back(TestCube.p_Meshcontainer.ibh);
+				staticRenderObjs.texh.push_back(TestCube.p_texture.texh);
+			}
+		}
 
 	return 1;
 }
 
-
+uint8_t update_cursor(uint8_t initalValue, int16_t updateAmount, uint8_t lowerLimit, uint8_t upperLimit)
+{
+	if (((int16_t)initalValue + (int16_t)updateAmount) > (int16_t)upperLimit)
+	{
+		return upperLimit;
+	}
+	else if (((int16_t)initalValue + (int16_t)updateAmount) < (int16_t)lowerLimit)
+	{
+		return lowerLimit;
+	}
+	else
+	{
+		return initalValue + updateAmount;
+	}
+}
 
 int main(int argc, char* argv[])
 {
@@ -239,57 +259,10 @@ int main(int argc, char* argv[])
 
 
 
-	StaticRenderObjs staticRenderObjs;
+	
 
 
 	StaticProp TestCube = StaticPropMap["TestCube"];
-	for (size_t i = 0; i < chunkMapsize; i++)
-	{
-		bool check = TestChunk->BlockMap[i] == block_type::dirt;
-		if (check)
-		{
-			MapLoc chunkloc = to3D(i);
-
-			Position pos;
-			pos.position.x = chunkloc.x;
-			pos.position.y = chunkloc.y;
-			pos.position.z = chunkloc.z;
-
-			staticRenderObjs.pos.push_back(pos);
-
-
-			float* mtx = new float[16];
-
-			bx::mtxRotateX(mtx, 0.0f);
-
-			// position x,y,z
-			mtx[12] = pos.position.x * 2;
-			mtx[13] = pos.position.y * 2;
-			mtx[14] = pos.position.z * 2;
-
-			float scalemtx[16];
-			bx::mtxScale(scalemtx, 1.0);
-
-
-			MatrixTransformStruct test;
-			//bx::mtxRotateZ(mtx, bx::kPi);
-			bx::mtxMul(test.mtx, scalemtx, mtx);
-			staticRenderObjs.matrixTransform.push_back(test);
-			staticRenderObjs.vbh.push_back(TestCube.p_Meshcontainer.vbh);
-			staticRenderObjs.ibh.push_back(TestCube.p_Meshcontainer.ibh);
-			staticRenderObjs.texh.push_back(TestCube.p_texture.texh);
-		}
-	}
-
-
-	//for (const auto& StaticProp : StaticPropMap)
-	//{
-
-	//	addStaticRenderObj(StaticProp.second, staticRenderObjs);
-
-	//}
-
-
 
 	bgfx::UniformHandle s_texColor = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
 
@@ -321,10 +294,15 @@ int main(int argc, char* argv[])
 	// Poll for events and wait till user closes window
 	bool quit = false;
 	SDL_Event currentEvent;
-	const Uint8* state = SDL_GetKeyboardState(NULL);
+
+	int numkeys_state = 0;
+	const Uint8* state = SDL_GetKeyboardState(&numkeys_state);
+
 	float z_rot = 0.0f;
-	float x_trans = 0.0f;
-	float y_trans = 0.0f;
+	//Angles in radians measured counter-clockwise from the positive x axis;
+
+	float x_trans = -(float)chunksizex;
+	float y_trans = -(float)chunksizey;
 	bx::Vec3 camera_heading = { 0.0f,0.0f,0.0f };
 	float camera_height = 30.0f;
 	float camera_distance = 30.0f;
@@ -334,7 +312,7 @@ int main(int argc, char* argv[])
 	Uint32 lastUpdate = SDL_GetTicks();
 	Uint32 current = SDL_GetTicks();
 
-
+	
 	actor testplayer;
 	testplayer.speed = 0.5;
 	testplayer.pos.x = 0.0f;
@@ -345,11 +323,6 @@ int main(int argc, char* argv[])
 	testplayer.target.x = 0.0f;
 	testplayer.target.y = 0.0f;
 	testplayer.target.z = 3.0f;
-
-
-
-
-
 
 	screen RenScreen;
 	RenScreen.HEIGHT = HEIGHT;
@@ -362,6 +335,14 @@ int main(int argc, char* argv[])
 	RenResHandles.TexColorUniform = s_texColor;
 	//RenResHandles.m_progssaoblurmerge = m_progssaoblurmerge;
 
+	struct Cursor {
+		uint8_t x = chunksizex/2;
+		uint8_t y = chunksizey/2;
+		uint8_t z = 0;
+	} cursor;
+
+	Uint8* previous_keyState = new Uint8[numkeys_state];
+	memcpy(previous_keyState, state, numkeys_state);
 	while (!quit)
 	{
 		lastUpdate = current;
@@ -374,11 +355,11 @@ int main(int argc, char* argv[])
 			animation_index = 0;
 		}
 
-		camera_heading.x = bx::cos(z_rot);
-		camera_heading.y = bx::sin(z_rot);
+		camera_heading.x = bx::sin(z_rot);
+		camera_heading.y = bx::cos(z_rot);
 
 		const bx::Vec3 at = { 0.0f, 0.0f, 0.0f };
-		const bx::Vec3 eye = { 0.0f, camera_distance, camera_height };
+		const bx::Vec3 eye = { 0.0f, -camera_distance, camera_height };
 
 
 		const bx::Vec3 up = { 0.0f, 0.0f, 1.0f };
@@ -392,6 +373,8 @@ int main(int argc, char* argv[])
 		bx::mtxRotateZ(r_mtx, z_rot);
 
 		float t_mtx[16];
+		//x_trans = cursor.x*2;
+		//y_trans = cursor.y*2;
 		bx::mtxTranslate(t_mtx, x_trans, y_trans, 0);
 
 		float new_view[16];
@@ -413,10 +396,6 @@ int main(int argc, char* argv[])
 			float(WIDTH) / float(HEIGHT),
 			0.1f, 1000.0f,
 			false);
-
-
-
-		
 
 		for (size_t i = 0; i < 16; i++)
 		{
@@ -449,6 +428,12 @@ int main(int argc, char* argv[])
 					camera_height += 2;
 				}
 			}
+
+			if (currentEvent.type == SDL_KEYUP)
+			{
+
+			}
+
 		}
 
 
@@ -485,36 +470,138 @@ int main(int argc, char* argv[])
 		}
 
 
+
+
+
+
 		if (state[SDL_SCANCODE_A])
 		{
-			y_trans += camera_heading.y;
-			x_trans += camera_heading.x;
+			// when the camera rotation is 0 it is facing down the Y axis
+			// left (A) moves the camera towards the Y direction
+			y_trans -= camera_heading.x;
+			x_trans -= camera_heading.y;
 		}
 		if (state[SDL_SCANCODE_D])
 		{
-			y_trans -= camera_heading.y;
-			x_trans -= camera_heading.x;
+			y_trans += camera_heading.x;
+			x_trans += camera_heading.y;
 		}
 
 		if (state[SDL_SCANCODE_W])
 		{
-			y_trans -= camera_heading.x;
-			x_trans += camera_heading.y;
+			// when the camera rotation is 0 it is facing down the Y axis
+			// forward (w) moves the camera towards the Y direction
+			y_trans += camera_heading.y;
+			x_trans -= camera_heading.x;
 		}
 		if (state[SDL_SCANCODE_S])
 		{
-			y_trans += camera_heading.x;
-			x_trans -= camera_heading.y;
+			y_trans -= camera_heading.y;
+			x_trans += camera_heading.x;
 		}
 
 		if (state[SDL_SCANCODE_Q])
 		{
 			z_rot += 0.03;
+			if (z_rot >= bx::kPi2)
+			{
+				z_rot -= bx::kPi2;
+			}
 		}
 		if (state[SDL_SCANCODE_E])
 		{
 			z_rot -= 0.03;
+			if (z_rot >= bx::kPi2)
+			{
+				z_rot -= bx::kPi2;
+			}
 		}
+
+
+		enum class cardinal_direction {North, East, South, West};
+
+		cardinal_direction facing;
+
+		//North Y is positive and the largest
+		if ((z_rot <= bx::kPiQuarter && z_rot >= 0) || (z_rot < bx::kPi2 && z_rot >= bx::kPi2 - bx::kPiQuarter))
+		{
+			facing = cardinal_direction::North;
+		}
+		if (z_rot <= bx::kPiHalf + bx::kPiQuarter && z_rot > bx::kPiQuarter)
+		{
+			facing = cardinal_direction::West;
+		}
+		if (z_rot <= bx::kPi + bx::kPiQuarter && z_rot > bx::kPiHalf + bx::kPiQuarter)
+		{
+			facing = cardinal_direction::South;
+		}
+		if (z_rot <= bx::kPi2 - bx::kPiQuarter && z_rot > bx::kPi + bx::kPiQuarter)
+		{
+			facing = cardinal_direction::East;
+		}
+
+		if (state[SDL_SCANCODE_UP] && !previous_keyState[SDL_SCANCODE_UP])
+		{
+			if (abs(camera_heading.y) > abs(camera_heading.x))
+			{
+				int16_t y = bx::round(camera_heading.y);
+				cursor.y = update_cursor(cursor.y, y, 0, chunksizey - 1);
+			}
+			else
+			{
+				int16_t x = -bx::round(camera_heading.x);
+				cursor.x = update_cursor(cursor.x, x, 0, chunksizex - 1);
+			}
+		}
+
+		if (state[SDL_SCANCODE_DOWN] && !previous_keyState[SDL_SCANCODE_DOWN])
+		{
+			if (abs(camera_heading.y) > abs(camera_heading.x))
+			{
+				int16_t y = -bx::round(camera_heading.y);
+				cursor.y = update_cursor(cursor.y, y, 0, chunksizey - 1);
+			}
+			else
+			{
+				int16_t x = bx::round(camera_heading.x);
+				cursor.x = update_cursor(cursor.x, x, 0, chunksizex - 1);
+			}
+		}
+
+		if (state[SDL_SCANCODE_RIGHT] && !previous_keyState[SDL_SCANCODE_RIGHT])
+		{
+			if (abs(camera_heading.y) > abs(camera_heading.x))
+			{
+				int16_t y = bx::round(camera_heading.y);
+				cursor.x = update_cursor(cursor.x, y, 0, chunksizex - 1);
+			}
+			else
+			{
+				int16_t x = bx::round(camera_heading.x);
+				cursor.y = update_cursor(cursor.y, x, 0, chunksizey - 1);
+			}
+		}
+
+		if (state[SDL_SCANCODE_LEFT] && !previous_keyState[SDL_SCANCODE_LEFT])
+		{
+			if (abs(camera_heading.y) > abs(camera_heading.x))
+			{
+				int16_t y = -bx::round(camera_heading.y);
+				cursor.x = update_cursor(cursor.x, y, 0, chunksizex - 1);
+			}
+			else
+			{
+				int16_t x = -bx::round(camera_heading.x);
+				cursor.y = update_cursor(cursor.y, x, 0, chunksizey - 1);
+			}
+		}
+
+
+		if (state[SDL_SCANCODE_P])
+		{
+			placeblock(TestChunk, cursor.x, cursor.y, cursor.z);
+		}
+
 
 		if (state[SDL_SCANCODE_I])
 		{
@@ -544,12 +631,42 @@ int main(int argc, char* argv[])
 		float result[4];
 		bx::vec4MulMtx(result,vec, testmat);
 
+		StaticRenderObjs staticRenderObjs;
+		//add cursor to staticrenderobjs
+		Position pos;
+		pos.position.x = cursor.x;
+		pos.position.y = cursor.y;
+		pos.position.z = cursor.z;
+
+		staticRenderObjs.pos.push_back(pos);
 
 
+		float mtx[16];// = new float[16];
+
+		bx::mtxRotateX(mtx, 0.0f);
+
+		// position x,y,z
+		mtx[12] = pos.position.x * 2;
+		mtx[13] = pos.position.y * 2;
+		mtx[14] = pos.position.z * 2;
+
+		float scalemtx[16];
+		bx::mtxScale(scalemtx, 1.0);
+
+
+		MatrixTransformStruct test;
+		//bx::mtxRotateZ(mtx, bx::kPi);
+		bx::mtxMul(test.mtx, scalemtx, mtx);
+		staticRenderObjs.matrixTransform.push_back(test);
+		staticRenderObjs.vbh.push_back(StaticPropMap["Cursor"].p_Meshcontainer.vbh);
+		staticRenderObjs.ibh.push_back(StaticPropMap["Cursor"].p_Meshcontainer.ibh);
+		staticRenderObjs.texh.push_back(StaticPropMap["Cursor"].p_texture.texh);
+
+		BuildRenobjsFromMap(TestChunk, TestCube, staticRenderObjs);
 		renderFrame(RenCam, RenScreen, staticRenderObjs, RenResHandles);
 
 
-
+		memcpy(previous_keyState, state, numkeys_state);
 	}
 
 	bgfx::shutdown();

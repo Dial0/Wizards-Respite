@@ -16,6 +16,18 @@ MapLoc to3D(uint32_t idx)
     return result;
 }
 
+int placeblock(MapChunk* Chunk, uint8_t x, uint8_t y, uint8_t z)
+{
+    if (x>=0 && x< Chunk->sizex && 
+        y>=0 && y < Chunk->sizey&&
+        z>=0 && z < Chunk->sizez)
+    {
+        uint32_t idx = to1D(x, y, z);
+        Chunk->BlockMap[idx] = block_type::dirt;
+    }
+    return 0;
+}
+
 int buildmap(MapChunk* Chunk)
 {
     static const uint32_t height = 10;
@@ -29,7 +41,7 @@ int buildmap(MapChunk* Chunk)
                 uint32_t idx = to1D(x, y, z);
                 if (z <= height)
                 {
-                    Chunk->BlockMap[idx] = block_type::dirt;
+                    //Chunk->BlockMap[idx] = block_type::dirt;
                 }
                 else
                 {
@@ -39,5 +51,5 @@ int buildmap(MapChunk* Chunk)
         }
     }
 
-    return 1;
+    return 0;
 }
