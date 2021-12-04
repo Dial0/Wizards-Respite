@@ -304,7 +304,7 @@ int main(int argc, char* argv[])
 	float x_trans = -(float)chunksizex;
 	float y_trans = -(float)chunksizey;
 	bx::Vec3 camera_heading = { 0.0f,0.0f,0.0f };
-	float camera_height = 30.0f;
+	float camera_height = 60.0f;
 	float camera_distance = 30.0f;
 
 	float animation_index = 0;
@@ -420,12 +420,12 @@ int main(int argc, char* argv[])
 				if (currentEvent.wheel.y > 0) // scroll up
 				{
 					camera_distance--;
-					camera_height -= 2;
+					camera_height -= 4;
 				}
 				else if (currentEvent.wheel.y < 0) // scroll down
 				{
 					camera_distance++;
-					camera_height += 2;
+					camera_height += 4;
 				}
 			}
 
@@ -600,6 +600,16 @@ int main(int argc, char* argv[])
 		if (state[SDL_SCANCODE_P])
 		{
 			placeblock(TestChunk, cursor.x, cursor.y, cursor.z);
+		}
+
+		if (state[SDL_SCANCODE_MINUS] && !previous_keyState[SDL_SCANCODE_MINUS])
+		{
+			cursor.z = update_cursor(cursor.z, -1, 0, chunksizez - 1);
+		}
+
+		if (state[SDL_SCANCODE_EQUALS] && !previous_keyState[SDL_SCANCODE_EQUALS])
+		{
+			cursor.z = update_cursor(cursor.z, 1, 0, chunksizez - 1);
 		}
 
 
