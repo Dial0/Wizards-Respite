@@ -1,0 +1,102 @@
+import bpy
+import bmesh
+import struct #https://docs.python.org/3/library/struct.html
+from bpy import context
+import binascii
+import numpy as np
+
+
+me = bpy.context.object.data
+bm = bmesh.new()
+bm.from_mesh(me)
+faces = bmesh.ops.triangulate(bm, faces=bm.faces[:])['faces']
+
+for face in faces:
+    for vertex in face.verts:
+        print(vertex.co)
+
+for face in faces:
+    for vertex in face.verts:
+        print(vertex.normal)
+
+
+me = bpy.context.object.data.copy()
+bm = bmesh.new()
+bm.from_mesh(me)
+faces = bmesh.ops.triangulate(bm, faces=bm.faces[:])['faces']
+bm.to_mesh(me)
+
+
+index = []
+pos = []
+normal = []
+uv = []
+
+indexNum = 0;
+# Loops per face
+for face in me.polygons:
+    for vert_idx, loop_idx in zip(face.vertices, face.loop_indices):
+        index.append(indexNum)
+        indexNum = indexNum+1
+        uv_coords = me.uv_layers.active.data[loop_idx].uv
+        vert_coords = me.vertices[vert_idx].co
+        vert_normal = face.normal
+        #vert_normal = me.vertices[vert_idx].normal
+        
+        pos.append(vert_coords)
+        normal.append(vert_normal)
+        uv.append(uv_coords)
+        
+        print("face idx: %i, vert co: %s, vert normal: %s uvs: %f, %f" % (face.index, vert_coords,vert_normal, uv_coords.x, uv_coords.y))
+        
+        
+
+
+newFile = open('C:\\Users\\Ethan\\Documents\\test_plane.mesh', 'wb')
+
+newFileByteArray = bytearray([170])
+newFile.write(newFileByteArray)
+
+indexSize = np.uint32(len(index))
+Sizebytes = np.ndarray.tobytes(np.array([indexSize],dtype='uint32'))
+newFileByteArray=bytearray(Sizebytes)
+newFile.write(newFileByteArray)
+
+for i in index:
+    i32 = np.uint32(i)
+    bytes = np.ndarray.tobytes(np.array([i32],dtype='uint16'))
+    newFileByteArray=bytearray(bytes)
+    newFile.write(newFileByteArray)
+    
+newFileByteArray = bytearray([0])
+newFile.write(newFileByteArray)
+
+newFileByteArray = bytearray([187])
+newFile.write(newFileByteArray)
+
+
+Sizebytes = np.ndarray.tobytes(np.array([len(pos)],dtype='uint32'))
+newFileByteArray=bytearray(Sizebytes)
+newFile.write(newFileByteArray)
+
+for i in range(len(pos)):
+    bytes = np.ndarray.tobytes(np.array([pos[i]],dtype='float32'))
+    newFileByteArray=bytearray(bytes)
+    newFile.write(newFileByteArray)
+    
+    bytes = np.ndarray.tobytes(np.array([normal[i]],dtype='float32'))
+    newFileByteArray=bytearray(bytes)
+    newFile.write(newFileByteArray)
+    
+    bytes = np.ndarray.tobytes(np.array([255,255,255,255],dtype='uint8'))
+    newFileByteArray=bytearray(bytes)
+    newFile.write(newFileByteArray)
+    
+    bytes = np.ndarray.tobytes(np.array([uv[i]],dtype='float32'))
+    newFileByteArray=bytearray(bytes)
+    newFile.write(newFileByteArray)
+
+newFileByteArray = bytearray([0])
+newFile.write(newFileByteArray)
+
+newFile.close()

@@ -75,10 +75,13 @@ void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs, 
 {
 
 	uint16_t RENDER_SCENE_PASS_ID = 0;
-
 	bgfx::setViewRect(RENDER_SCENE_PASS_ID, 0, 0, screen.WIDTH, screen.HEIGHT);
 	bgfx::setViewTransform(RENDER_SCENE_PASS_ID, cam.view, cam.proj);
 	//bgfx::setViewFrameBuffer(RENDER_SCENE_PASS_ID, RenResources.m_gbuffer);
+
+	bgfx::setViewScissor(RENDER_SCENE_PASS_ID, 0, 0, screen.WIDTH / 2, screen.HEIGHT / 2);
+
+
 	bgfx::setViewName(RENDER_SCENE_PASS_ID, "Gbuffer");
 
 	bgfx::touch(0);

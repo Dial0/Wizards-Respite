@@ -171,45 +171,47 @@ const bgfx::Memory* readTexture(const char* filename) {
 	return mem;
 }
 
-int BuildRenobjsFromMap(MapChunk* TestChunk, StaticProp TestCube, StaticRenderObjs& staticRenderObjs)
+int BuildRenobjsFromMap(MapChunk* TestChunk, std::unordered_map<std::string, StaticProp>& StaticPropMap, StaticRenderObjs& staticRenderObjs)
 {
 	for (size_t i = 0; i < chunkMapsize; i++)
+	{
+		if (TestChunk->BlockMap[i] != block_type::air)
 		{
-			bool check = TestChunk->BlockMap[i] == block_type::dirt;
-			if (check)
-			{
-				MapLoc chunkloc = to3D(i);
+			std::string blockname = block_str[TestChunk->BlockMap[i]];
+			StaticProp block = StaticPropMap[blockname];
 
-				Position pos;
-				pos.position.x = chunkloc.x;
-				pos.position.y = chunkloc.y;
-				pos.position.z = chunkloc.z;
+			MapLoc chunkloc = to3D(i);
 
-				staticRenderObjs.pos.push_back(pos);
+			Position pos;
+			pos.position.x = chunkloc.x;
+			pos.position.y = chunkloc.y;
+			pos.position.z = chunkloc.z;
 
-
-				float mtx[16];
-
-				bx::mtxRotateX(mtx, 0.0f);
-
-				// position x,y,z
-				mtx[12] = pos.position.x * 2;
-				mtx[13] = pos.position.y * 2;
-				mtx[14] = pos.position.z * 2;
-
-				float scalemtx[16];
-				bx::mtxScale(scalemtx, 1.0);
+			staticRenderObjs.pos.push_back(pos);
 
 
-				MatrixTransformStruct test;
-				//bx::mtxRotateZ(mtx, bx::kPi);
-				bx::mtxMul(test.mtx, scalemtx, mtx);
-				staticRenderObjs.matrixTransform.push_back(test);
-				staticRenderObjs.vbh.push_back(TestCube.p_Meshcontainer.vbh);
-				staticRenderObjs.ibh.push_back(TestCube.p_Meshcontainer.ibh);
-				staticRenderObjs.texh.push_back(TestCube.p_texture.texh);
-			}
+			float mtx[16];
+
+			bx::mtxRotateX(mtx, 0.0f);
+
+			// position x,y,z
+			mtx[12] = pos.position.x;
+			mtx[13] = pos.position.y;
+			mtx[14] = pos.position.z;
+
+			float scalemtx[16];
+			bx::mtxScale(scalemtx, 1.0);
+
+
+			MatrixTransformStruct test;
+			//bx::mtxRotateZ(mtx, bx::kPi);
+			bx::mtxMul(test.mtx, scalemtx, mtx);
+			staticRenderObjs.matrixTransform.push_back(test);
+			staticRenderObjs.vbh.push_back(block.p_Meshcontainer.vbh);
+			staticRenderObjs.ibh.push_back(block.p_Meshcontainer.ibh);
+			staticRenderObjs.texh.push_back(block.p_texture.texh);
 		}
+	}
 
 	return 1;
 }
@@ -262,7 +264,7 @@ int main(int argc, char* argv[])
 	
 
 
-	StaticProp TestCube = StaticPropMap["TestCube"];
+	StaticProp TestCube = StaticPropMap["Dirt"];
 
 	bgfx::UniformHandle s_texColor = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
 
@@ -301,12 +303,12 @@ int main(int argc, char* argv[])
 	float z_rot = 0.0f;
 	//Angles in radians measured counter-clockwise from the positive x axis;
 
-	float x_trans = -(float)chunksizex;
-	float y_trans = -(float)chunksizey;
+	float x_trans = -(float)chunksizex/2;
+	float y_trans = -(float)chunksizey/2;
 	bx::Vec3 camera_heading = { 0.0f,0.0f,0.0f };
 	float camera_height = 60.0f;
 	float camera_distance = 30.0f;
-
+	float camera_movement_speed = 1.0f;
 	float animation_index = 0;
 
 	Uint32 lastUpdate = SDL_GetTicks();
@@ -331,14 +333,14 @@ int main(int argc, char* argv[])
 	RenderResources RenResHandles;
 	loadRenderResources(RenResHandles, RenScreen);
 	RenResHandles.BasicProgram = m_progMesh;
-	//RenResHandles.ShadowProgram = m_progShadow;
 	RenResHandles.TexColorUniform = s_texColor;
-	//RenResHandles.m_progssaoblurmerge = m_progssaoblurmerge;
 
 	struct Cursor {
 		uint8_t x = chunksizex/2;
 		uint8_t y = chunksizey/2;
 		uint8_t z = 0;
+		block_type cur_block = block_type::air;
+		uint32_t enum_vec_idx = 0;
 	} cursor;
 
 	Uint8* previous_keyState = new Uint8[numkeys_state];
@@ -477,32 +479,32 @@ int main(int argc, char* argv[])
 		if (state[SDL_SCANCODE_A])
 		{
 			// when the camera rotation is 0 it is facing down the Y axis
-			// left (A) moves the camera towards the Y direction
-			y_trans -= camera_heading.x;
-			x_trans -= camera_heading.y;
+			y_trans += camera_heading.x * camera_movement_speed * dT * camera_height;
+			x_trans += camera_heading.y * camera_movement_speed * dT * camera_height;
 		}
 		if (state[SDL_SCANCODE_D])
 		{
-			y_trans += camera_heading.x;
-			x_trans += camera_heading.y;
+			y_trans -= camera_heading.x * camera_movement_speed * dT * camera_height;
+			x_trans -= camera_heading.y * camera_movement_speed * dT * camera_height;
 		}
 
 		if (state[SDL_SCANCODE_W])
 		{
 			// when the camera rotation is 0 it is facing down the Y axis
 			// forward (w) moves the camera towards the Y direction
-			y_trans += camera_heading.y;
-			x_trans -= camera_heading.x;
+			y_trans -= camera_heading.y * camera_movement_speed * dT * camera_height;
+			x_trans += camera_heading.x * camera_movement_speed * dT * camera_height;
 		}
 		if (state[SDL_SCANCODE_S])
 		{
-			y_trans -= camera_heading.y;
-			x_trans += camera_heading.x;
+			y_trans += camera_heading.y * camera_movement_speed * dT * camera_height;
+			x_trans -= camera_heading.x * camera_movement_speed * dT * camera_height;
 		}
 
 		if (state[SDL_SCANCODE_Q])
 		{
-			z_rot += 0.03;
+			//does this need a zero overflow check???
+			z_rot -= 0.03;
 			if (z_rot >= bx::kPi2)
 			{
 				z_rot -= bx::kPi2;
@@ -510,7 +512,7 @@ int main(int argc, char* argv[])
 		}
 		if (state[SDL_SCANCODE_E])
 		{
-			z_rot -= 0.03;
+			z_rot += 0.03;
 			if (z_rot >= bx::kPi2)
 			{
 				z_rot -= bx::kPi2;
@@ -597,9 +599,25 @@ int main(int argc, char* argv[])
 		}
 
 
+		if (state[SDL_SCANCODE_LEFTBRACKET] && !previous_keyState[SDL_SCANCODE_LEFTBRACKET])
+		{
+
+		}
+
+		if (state[SDL_SCANCODE_RIGHTBRACKET] && !previous_keyState[SDL_SCANCODE_RIGHTBRACKET])
+		{
+			cursor.enum_vec_idx++;
+			if (cursor.enum_vec_idx >= block_emums.size())
+			{
+				cursor.enum_vec_idx = 0;
+			}
+
+			cursor.cur_block = block_emums[cursor.enum_vec_idx];
+		}
+
 		if (state[SDL_SCANCODE_P])
 		{
-			placeblock(TestChunk, cursor.x, cursor.y, cursor.z);
+			placeblock(TestChunk,cursor.cur_block, cursor.x, cursor.y, cursor.z);
 		}
 
 		if (state[SDL_SCANCODE_MINUS] && !previous_keyState[SDL_SCANCODE_MINUS])
@@ -656,23 +674,36 @@ int main(int argc, char* argv[])
 		bx::mtxRotateX(mtx, 0.0f);
 
 		// position x,y,z
-		mtx[12] = pos.position.x * 2;
-		mtx[13] = pos.position.y * 2;
-		mtx[14] = pos.position.z * 2;
+		mtx[12] = pos.position.x;
+		mtx[13] = pos.position.y;
+		mtx[14] = pos.position.z;
 
 		float scalemtx[16];
 		bx::mtxScale(scalemtx, 1.0);
 
+		std::string cursor_block_name = block_str[cursor.enum_vec_idx];
 
 		MatrixTransformStruct test;
 		//bx::mtxRotateZ(mtx, bx::kPi);
 		bx::mtxMul(test.mtx, scalemtx, mtx);
 		staticRenderObjs.matrixTransform.push_back(test);
-		staticRenderObjs.vbh.push_back(StaticPropMap["Cursor"].p_Meshcontainer.vbh);
-		staticRenderObjs.ibh.push_back(StaticPropMap["Cursor"].p_Meshcontainer.ibh);
-		staticRenderObjs.texh.push_back(StaticPropMap["Cursor"].p_texture.texh);
 
-		BuildRenobjsFromMap(TestChunk, TestCube, staticRenderObjs);
+		if (cursor.enum_vec_idx == 0)
+		{
+			staticRenderObjs.vbh.push_back(StaticPropMap["Cursor"].p_Meshcontainer.vbh);
+			staticRenderObjs.ibh.push_back(StaticPropMap["Cursor"].p_Meshcontainer.ibh);
+			staticRenderObjs.texh.push_back(StaticPropMap["Cursor"].p_texture.texh);
+		}
+		else
+		{
+			staticRenderObjs.vbh.push_back(StaticPropMap[cursor_block_name].p_Meshcontainer.vbh);
+			staticRenderObjs.ibh.push_back(StaticPropMap[cursor_block_name].p_Meshcontainer.ibh);
+			staticRenderObjs.texh.push_back(StaticPropMap[cursor_block_name].p_texture.texh);
+		}
+
+
+
+		BuildRenobjsFromMap(TestChunk, StaticPropMap, staticRenderObjs);
 		renderFrame(RenCam, RenScreen, staticRenderObjs, RenResHandles);
 
 
