@@ -7,6 +7,7 @@
 #include <string>
 #include <unordered_map>
 #include "Model.h"
+#include "PixelFont.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -317,4 +318,59 @@ void LoadPropsFile(std::string fileName, std::unordered_map<std::string, texture
 	//load if not
 	//check if texture already loaded
 	//load if not
+}
+
+void LoadFontFile(std::string fileName, std::unordered_map<std::string, texture>& TexturesMap, pixel_font& fontstruct)
+{
+    std::filebuf fb;
+    if (fb.open(fileName, std::ios::in))
+    {
+        std::istream is(&fb);
+
+        if (is)
+        {
+            std::vector<std::string> line = getNextLineAndSplitIntoTokens(is); //read first header line
+
+            std::string texturefile = line[1];
+
+            if (TexturesMap.find(texturefile) == TexturesMap.end())
+            {
+                bgfx::TextureHandle texhandle;
+                if (LoadTexture("Assets\\\Font\\" + texturefile, texhandle))
+                {
+                    texture newtexture;
+                    newtexture.texh = texhandle;
+                    std::pair<std::string, texture> addtexture(texturefile, newtexture);
+                    TexturesMap.insert(addtexture);
+                }
+                else
+                {
+                    //texture cant be loaded
+                    //replace with debug texture?
+                }
+            }
+
+
+            fontstruct.texhandle = TexturesMap[texturefile].texh;
+            fontstruct.glyph_height = atoi(line[2].c_str());
+            fontstruct.textureWidth = atoi(line[3].c_str());
+            fontstruct.textureHeight = atoi(line[4].c_str());
+
+        }
+
+        while (is)
+        {
+            std::vector<std::string> line = getNextLineAndSplitIntoTokens(is);
+
+            if (line.size() == 4)
+            {
+                tex_coord read_tex_coord;
+                read_tex_coord.x = atoi(line[1].c_str());
+                read_tex_coord.y = atoi(line[2].c_str());
+
+                fontstruct.glyph_tex_cord.push_back(read_tex_coord);
+                fontstruct.glyph_width.push_back(atoi(line[3].c_str()));
+            }
+        }
+    }
 }

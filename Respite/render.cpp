@@ -71,22 +71,17 @@ void loadRenderResources(RenderResources& ResourceHandles, screen screen)
 }
 
 
-void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs, RenderResources RenResources)
+void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs, RenderResources RenResources, bgfx::VertexBufferHandle Font_vbh, bgfx::TextureHandle font_th ) 
 {
 
-	uint16_t RENDER_SCENE_PASS_ID = 0;
-	bgfx::setViewRect(RENDER_SCENE_PASS_ID, 0, 0, screen.WIDTH, screen.HEIGHT);
-	bgfx::setViewTransform(RENDER_SCENE_PASS_ID, cam.view, cam.proj);
-	//bgfx::setViewFrameBuffer(RENDER_SCENE_PASS_ID, RenResources.m_gbuffer);
-
-	bgfx::setViewScissor(RENDER_SCENE_PASS_ID, 0, 0, screen.WIDTH / 2, screen.HEIGHT / 2);
-
-
-	bgfx::setViewName(RENDER_SCENE_PASS_ID, "Gbuffer");
+	uint16_t RENDER_SCENE_PASS = 0;
+	bgfx::setViewRect(RENDER_SCENE_PASS, 0, 0, screen.WIDTH, screen.HEIGHT);
+	bgfx::setViewTransform(RENDER_SCENE_PASS, cam.view, cam.proj);
+	bgfx::setViewName(RENDER_SCENE_PASS, "Scene");
 
 	bgfx::touch(0);
 
-	bgfx::setViewClear(RENDER_SCENE_PASS_ID
+	bgfx::setViewClear(RENDER_SCENE_PASS
 		, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH
 		, 0x303030ff, 1.0f, 0
 	);
@@ -94,12 +89,14 @@ void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs, 
 
 	for (size_t i = 0; i < staticRenderObjs.pos.size(); i++)
 	{
+
+
 		// Set model matrix for rendering.
 		bgfx::setTransform(staticRenderObjs.matrixTransform[i].mtx);
 
 		// Set vertex and index buffer.
 		bgfx::setVertexBuffer(0, staticRenderObjs.vbh[i]);
-		bgfx::setIndexBuffer(staticRenderObjs.ibh[i]);
+		//bgfx::setIndexBuffer(staticRenderObjs.ibh[i]);
 
 		bgfx::setTexture(0, RenResources.TexColorUniform, staticRenderObjs.texh[i]);
 
@@ -116,10 +113,40 @@ void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs, 
 		bgfx::setState(state);
 
 		// Submit primitive for rendering to view 0.
-		bgfx::submit(RENDER_SCENE_PASS_ID, RenResources.BasicProgram);
+		bgfx::submit(RENDER_SCENE_PASS, RenResources.BasicProgram);
 
 	}
 
+
+	uint16_t RENDER_UI_PASS = 1;
+	bgfx::setViewRect(RENDER_UI_PASS, 0, 0, screen.WIDTH, screen.HEIGHT);
+	bgfx::setViewTransform(RENDER_UI_PASS, cam.view, cam.proj);
+	bgfx::setViewName(RENDER_UI_PASS, "Scene");
+
+	bgfx::touch(0);
+
+	bgfx::setViewClear(RENDER_UI_PASS
+		, BGFX_CLEAR_DEPTH
+		, 0x00000000, 1.0f, 0
+	);
+
+	bgfx::setVertexBuffer(RENDER_UI_PASS, Font_vbh);
+	bgfx::setTexture(0, RenResources.TexColorUniform, font_th);
+
+	unsigned long long state = 0
+		| BGFX_STATE_WRITE_RGB
+		| BGFX_STATE_WRITE_A
+		| BGFX_STATE_WRITE_Z
+		| BGFX_STATE_DEPTH_TEST_LESS
+		| BGFX_STATE_MSAA
+		| BGFX_STATE_BLEND_ALPHA
+		;
+
+	// Set render states.
+	bgfx::setState(state);
+
+	// Submit primitive for rendering to view 0.
+	bgfx::submit(RENDER_UI_PASS, RenResources.FontProgram);
 
 	bgfx::frame();
 }

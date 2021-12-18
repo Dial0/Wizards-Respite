@@ -82,6 +82,7 @@ static const int32_t cMaxBlurPassCount = 6;
 struct RenderResources {
 
 	bgfx::ProgramHandle BasicProgram;
+	bgfx::ProgramHandle FontProgram;
 
 	bgfx::UniformHandle TexColorUniform;
 
@@ -92,4 +93,4 @@ struct RenderResources {
 
 
 void loadRenderResources(RenderResources& ResourceHandles, screen screen);
-void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs, RenderResources RenResources);
+void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs, RenderResources RenResources, bgfx::VertexBufferHandle Font_vbh, bgfx::TextureHandle font_th);

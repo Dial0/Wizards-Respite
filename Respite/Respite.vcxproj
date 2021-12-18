@@ -159,6 +159,7 @@
     <ClInclude Include="loadMesh.h" />
     <ClInclude Include="map.h" />
     <ClInclude Include="Model.h" />
+    <ClInclude Include="PixelFont.h" />
     <ClInclude Include="Render.h" />
     <ClInclude Include="ShaderLoader.h" />
     <ClInclude Include="terrain.h" />

@@ -23,8 +23,8 @@
 
 
 
-const int WIDTH = 1024;
-const int HEIGHT = 768;
+const int WIDTH = 1920;
+const int HEIGHT = 1080;
 
 //object occlusion
 //
@@ -249,6 +249,7 @@ int main(int argc, char* argv[])
 	// Initialize bgfx
 	bgfx::init();
 	VertexData::init();
+	FontVertexData::init();
 
 	MapChunk* TestChunk = new MapChunk;
 	buildmap(TestChunk);
@@ -260,9 +261,16 @@ int main(int argc, char* argv[])
 	LoadPropsFile("Assets\\Prop\\PropList.csv",TexturesMap, StaticMeshMap, StaticPropMap);
 
 
+	pixel_font rainyhearts;
+	LoadFontFile("Assets\\Font\\rainyhearts.fdf", TexturesMap, rainyhearts);
 
-	
+	std::vector<FontVertexData> vertexbuff;
+	buildfontvb(vertexbuff, "Please please please draw this text", rainyhearts, WIDTH, HEIGHT, 1.0f);
 
+	bgfx::VertexBufferHandle font_vbh =  bgfx::createVertexBuffer(
+		bgfx::makeRef(&vertexbuff[0], sizeof(FontVertexData) * vertexbuff.size())
+		, FontVertexData::ms_decl
+	);
 
 	StaticProp TestCube = StaticPropMap["Dirt"];
 
@@ -270,6 +278,10 @@ int main(int argc, char* argv[])
 
 	//bgfx::ProgramHandle m_progShadow = loadProgram("vs_sms_shadow.bin", "fs_sms_shadow.bin");
 	bgfx::ProgramHandle m_progMesh = loadProgram("G:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\vs_basic.bin", "G:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\fs_basic.bin");
+
+	bgfx::ProgramHandle m_progFont = loadProgram("G:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\ss_font\\vs_font.bin", "G:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\ss_font\\fs_font.bin");
+
+
 	//bgfx::ProgramHandle m_progssao = loadProgram("J:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\vs_ssao.bin", "J:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\fs_ssao_2.bin");
 	//bgfx::ProgramHandle m_progssaoblurmerge = loadProgram("J:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\vs_ssaoblurmerge.bin", "J:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\fs_ssaoblurmerge.bin");
 
@@ -333,6 +345,7 @@ int main(int argc, char* argv[])
 	RenderResources RenResHandles;
 	loadRenderResources(RenResHandles, RenScreen);
 	RenResHandles.BasicProgram = m_progMesh;
+	RenResHandles.FontProgram = m_progFont;
 	RenResHandles.TexColorUniform = s_texColor;
 
 	struct Cursor {
@@ -601,7 +614,17 @@ int main(int argc, char* argv[])
 
 		if (state[SDL_SCANCODE_LEFTBRACKET] && !previous_keyState[SDL_SCANCODE_LEFTBRACKET])
 		{
+			
+			if (cursor.enum_vec_idx > 0)
+			{
+				cursor.enum_vec_idx--;
+			}
+			else
+			{
+				cursor.enum_vec_idx = (block_emums.size() - 1);
+			}
 
+			cursor.cur_block = block_emums[cursor.enum_vec_idx];
 		}
 
 		if (state[SDL_SCANCODE_RIGHTBRACKET] && !previous_keyState[SDL_SCANCODE_RIGHTBRACKET])
@@ -704,7 +727,7 @@ int main(int argc, char* argv[])
 
 
 		BuildRenobjsFromMap(TestChunk, StaticPropMap, staticRenderObjs);
-		renderFrame(RenCam, RenScreen, staticRenderObjs, RenResHandles);
+		renderFrame(RenCam, RenScreen, staticRenderObjs, RenResHandles, font_vbh, TexturesMap["rainyhearts.png"].texh);
 
 
 		memcpy(previous_keyState, state, numkeys_state);
