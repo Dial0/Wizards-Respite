@@ -71,7 +71,8 @@ void loadRenderResources(RenderResources& ResourceHandles, screen screen)
 }
 
 
-void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs, RenderResources RenResources, bgfx::VertexBufferHandle Font_vbh, bgfx::TextureHandle font_th ) 
+void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs,UiRenderObjs& uiRenderObjs, RenderResources RenResources, bgfx::VertexBufferHandle Font_vbh, bgfx::TextureHandle font_th ) 
+//void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs, RenderResources RenResources, bgfx::VertexBufferHandle Font_vbh, bgfx::TextureHandle font_th)
 {
 
 	uint16_t RENDER_SCENE_PASS = 0;
@@ -118,10 +119,12 @@ void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs, 
 	}
 
 
+
+
 	uint16_t RENDER_UI_PASS = 1;
 	bgfx::setViewRect(RENDER_UI_PASS, 0, 0, screen.WIDTH, screen.HEIGHT);
 	bgfx::setViewTransform(RENDER_UI_PASS, cam.view, cam.proj);
-	bgfx::setViewName(RENDER_UI_PASS, "Scene");
+	bgfx::setViewName(RENDER_UI_PASS, "UserInterface");
 
 	bgfx::touch(0);
 
@@ -130,23 +133,27 @@ void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs, 
 		, 0x00000000, 1.0f, 0
 	);
 
-	bgfx::setVertexBuffer(RENDER_UI_PASS, Font_vbh);
-	bgfx::setTexture(0, RenResources.TexColorUniform, font_th);
+	for (size_t i = 0; i < uiRenderObjs.vbh.size(); i++)
+	{
+		bgfx::setVertexBuffer(RENDER_UI_PASS, uiRenderObjs.vbh[i]);
+		bgfx::setTexture(0, RenResources.TexColorUniform, uiRenderObjs.texh[i]);
+		//bgfx::setTransform(staticRenderObjs.matrixTransform[i].mtx);
 
-	unsigned long long state = 0
-		| BGFX_STATE_WRITE_RGB
-		| BGFX_STATE_WRITE_A
-		| BGFX_STATE_WRITE_Z
-		| BGFX_STATE_DEPTH_TEST_LESS
-		| BGFX_STATE_MSAA
-		| BGFX_STATE_BLEND_ALPHA
-		;
+		unsigned long long state = 0
+			| BGFX_STATE_WRITE_RGB
+			| BGFX_STATE_WRITE_A
+			| BGFX_STATE_WRITE_Z
+			| BGFX_STATE_DEPTH_TEST_LESS
+			| BGFX_STATE_MSAA
+			| BGFX_STATE_BLEND_ALPHA
+			;
 
-	// Set render states.
-	bgfx::setState(state);
+		// Set render states.
+		bgfx::setState(state);
 
-	// Submit primitive for rendering to view 0.
-	bgfx::submit(RENDER_UI_PASS, RenResources.FontProgram);
+		// Submit primitive for rendering to view 0.
+		bgfx::submit(RENDER_UI_PASS, RenResources.FontProgram);
+	}
 
 	bgfx::frame();
 }

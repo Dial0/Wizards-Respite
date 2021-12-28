@@ -96,6 +96,9 @@
       <AdditionalLibraryDirectories>C:\bgfx\lib;C:\SDL2\SDL2-2.0.9\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>psapi.lib;Setupapi.lib;version.lib;imm32.lib;winmm.lib;sdl2.lib;bxDebug.lib;bimgDebug.lib;bimg_decodeDebug.lib;bgfxDebug.lib;sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <Manifest>
+      <EnableDpiAwareness>true</EnableDpiAwareness>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -142,15 +145,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Animation.cpp" />
+    <ClCompile Include="AssetLoader.cpp" />
     <ClCompile Include="loadMesh.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Model.cpp" />
+    <ClCompile Include="PixelFont.cpp" />
     <ClCompile Include="render.cpp" />
     <ClCompile Include="ShaderLoader.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="terrain.cpp" />
+    <ClCompile Include="UserInterface.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="UserInterface.h" />
     <ClInclude Include="actor.h" />
     <ClInclude Include="ActorComponets.h" />
     <ClInclude Include="Animation.h" />

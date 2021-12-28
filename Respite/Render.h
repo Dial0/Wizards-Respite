@@ -3,7 +3,7 @@
 #include <bx/math.h>
 #include "ShaderLoader.h"
 #include "Model.h"
-
+#include "UserInterface.h"
 
 //object occlusion
 //
@@ -93,4 +93,5 @@ struct RenderResources {
 
 
 void loadRenderResources(RenderResources& ResourceHandles, screen screen);
-void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs, RenderResources RenResources, bgfx::VertexBufferHandle Font_vbh, bgfx::TextureHandle font_th);
+void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs, UiRenderObjs& uiRenderObjs, RenderResources RenResources, bgfx::VertexBufferHandle Font_vbh, bgfx::TextureHandle font_th);
+//void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs, RenderResources RenResources, bgfx::VertexBufferHandle Font_vbh, bgfx::TextureHandle font_th);

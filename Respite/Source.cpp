@@ -23,8 +23,8 @@
 
 
 
-const int WIDTH = 1920;
-const int HEIGHT = 1080;
+const int WIDTH = 1280;
+const int HEIGHT = 720;
 
 //object occlusion
 //
@@ -34,6 +34,41 @@ const int HEIGHT = 1080;
 //
 //create bounding box from the near and far rect, then test this agains the other object boudning boxes to determine which objects to dissolve.
 
+UiRenderObjHandle findMissingPositive(std::vector<UiRenderObjHandle> arr)
+{
+	// Mark arr[i] as visited by
+	// making arr[arr[i] - 1] negative.
+	// Note that 1 is subtracted
+	// because index start
+	// from 0 and positive numbers start from 1
+	// 3,8,4,5,1,7
+
+	std::vector<uint8_t> visited;
+	visited.resize(arr.size(),1);
+
+	for (size_t i = 0; i < arr.size(); i++)
+	{
+		if (arr[i] - 1 < arr.size() && arr[arr[i] - 1] > 0)
+		{
+			visited[arr[i] - 1] = 0;
+		}
+
+	}
+
+	// Return the first index value at which is positive
+	for (size_t i = 0; i < visited.size(); i++)
+	{
+		if (visited[i] > 0)
+		{
+			// 1 is added because indexes start from 0
+			return i + 1;
+		}
+
+	}
+
+
+	return arr.size() + 1;
+}
 
 static void* sdlNativeWindowHandle(SDL_Window* _window)
 {
@@ -232,8 +267,29 @@ uint8_t update_cursor(uint8_t initalValue, int16_t updateAmount, uint8_t lowerLi
 	}
 }
 
+
+void TestmtxProjXYWH(float* _result, float _x, float _y, float _width, float _height, float _near, float _far, bool _homogeneousNdc, bx::Handness::Enum _handness)
+{
+	const float diff = _far - _near;
+	const float aa = _homogeneousNdc ? (_far + _near) / diff : _far / diff;
+	const float bb = _homogeneousNdc ? (2.0f * _far * _near) / diff : _near * aa;
+
+	bx::memSet(_result, 0, sizeof(float) * 16);
+	_result[0] = _width;
+	_result[5] = _height;
+	_result[8] = (bx::Handness::Right == _handness) ? _x : -_x;
+	_result[9] = (bx::Handness::Right == _handness) ? _y : -_y;
+	_result[10] = (bx::Handness::Right == _handness) ? -aa : aa;
+	_result[11] = (bx::Handness::Right == _handness) ? -1.0f : 1.0f;
+	_result[14] = -bb;
+}
+
+
 int main(int argc, char* argv[])
 {
+
+	std::vector<UiRenderObjHandle> arr = { 1,2,3,4,5,6 };
+	int res = findMissingPositive(arr);
 
 	SDL_Init(0);
 	SDL_Window* window = SDL_CreateWindow("Respite",
@@ -250,6 +306,7 @@ int main(int argc, char* argv[])
 	bgfx::init();
 	VertexData::init();
 	FontVertexData::init();
+	UiVertexData::init();
 
 	MapChunk* TestChunk = new MapChunk;
 	buildmap(TestChunk);
@@ -260,12 +317,16 @@ int main(int argc, char* argv[])
 
 	LoadPropsFile("Assets\\Prop\\PropList.csv",TexturesMap, StaticMeshMap, StaticPropMap);
 
-
 	pixel_font rainyhearts;
 	LoadFontFile("Assets\\Font\\rainyhearts.fdf", TexturesMap, rainyhearts);
 
+	LoadUIFiles(TexturesMap);
+
 	std::vector<FontVertexData> vertexbuff;
-	buildfontvb(vertexbuff, "Please please please draw this text", rainyhearts, WIDTH, HEIGHT, 1.0f);
+	std::vector<UiVertexData> vbo;
+
+	float fontscale = 1.0f;
+	buildfontvb(vertexbuff, "A", rainyhearts, WIDTH, HEIGHT, fontscale);
 
 	bgfx::VertexBufferHandle font_vbh =  bgfx::createVertexBuffer(
 		bgfx::makeRef(&vertexbuff[0], sizeof(FontVertexData) * vertexbuff.size())
@@ -279,7 +340,7 @@ int main(int argc, char* argv[])
 	//bgfx::ProgramHandle m_progShadow = loadProgram("vs_sms_shadow.bin", "fs_sms_shadow.bin");
 	bgfx::ProgramHandle m_progMesh = loadProgram("G:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\vs_basic.bin", "G:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\fs_basic.bin");
 
-	bgfx::ProgramHandle m_progFont = loadProgram("G:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\ss_font\\vs_font.bin", "G:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\ss_font\\fs_font.bin");
+	bgfx::ProgramHandle m_progFont = loadProgram("G:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\vs_font.bin", "G:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\fs_font.bin");
 
 
 	//bgfx::ProgramHandle m_progssao = loadProgram("J:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\vs_ssao.bin", "J:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\fs_ssao_2.bin");
@@ -398,13 +459,13 @@ int main(int argc, char* argv[])
 
 		float proj[16];
 		float proj2[16];
-		bx::mtxProj(proj,
-			30.0f,
-			float(WIDTH) / float(HEIGHT),
-			0.1f, 1000.0f,
-			bgfx::getCaps()->homogeneousDepth, bx::Handness::Right);
+		bx::mtxProj(proj,30.0f,float(WIDTH) / float(HEIGHT),0.1f, 1000.0f, bgfx::getCaps()->homogeneousDepth, bx::Handness::Right);
 
 
+		// Use this to render 3d onto UI layer
+		//float height = 1.0f / tan(bx::toRad(30.0f) * 0.5f);
+		//float width = height * 1.0f / (float(WIDTH) / float(HEIGHT));
+		//TestmtxProjXYWH(proj,0.5,0.5, 9.0f/3.0f, 16.0f/3.0f, 0.1f,1000.0f, bgfx::getCaps()->homogeneousDepth, bx::Handness::Right);
 
 		bx::mtxProj(proj2,
 			30.0f,
@@ -436,11 +497,31 @@ int main(int argc, char* argv[])
 				{
 					camera_distance--;
 					camera_height -= 4;
+
+					vertexbuff.clear();
+					fontscale -= 0.1f;
+					buildfontvb(vertexbuff, "Please please please draw this text", rainyhearts, WIDTH, HEIGHT, fontscale);
+					bgfx::destroy(font_vbh);
+					font_vbh = bgfx::createVertexBuffer(
+						bgfx::makeRef(&vertexbuff[0], sizeof(FontVertexData) * vertexbuff.size())
+						, FontVertexData::ms_decl
+					);
+
 				}
 				else if (currentEvent.wheel.y < 0) // scroll down
 				{
 					camera_distance++;
 					camera_height += 4;
+
+					vertexbuff.clear();
+					fontscale += 0.1f;
+					buildfontvb(vertexbuff, "Please please please draw this text", rainyhearts, WIDTH, HEIGHT, fontscale);
+					bgfx::destroy(font_vbh);
+					font_vbh = bgfx::createVertexBuffer(
+						bgfx::makeRef(&vertexbuff[0], sizeof(FontVertexData) * vertexbuff.size())
+						, FontVertexData::ms_decl
+					);
+					
 				}
 			}
 
@@ -663,6 +744,11 @@ int main(int argc, char* argv[])
 			}
 		}
 
+		//need some kinda UI struct
+
+		//build UI
+		//depends on screen res
+		//return vbo
 
 
 		camera RenCam;
@@ -727,7 +813,14 @@ int main(int argc, char* argv[])
 
 
 		BuildRenobjsFromMap(TestChunk, StaticPropMap, staticRenderObjs);
-		renderFrame(RenCam, RenScreen, staticRenderObjs, RenResHandles, font_vbh, TexturesMap["rainyhearts.png"].texh);
+
+
+
+		UiRenderObjs uiRenderObjs;
+		Ui_BuildBlockSelectionUI(vbo,uiRenderObjs, TexturesMap, WIDTH, HEIGHT);
+
+		renderFrame(RenCam, RenScreen, staticRenderObjs, uiRenderObjs, RenResHandles, font_vbh, TexturesMap["rainyhearts.png"].texh);
+		//renderFrame(RenCam, RenScreen, staticRenderObjs, RenResHandles, font_vbh, TexturesMap["rainyhearts.png"].texh);
 
 
 		memcpy(previous_keyState, state, numkeys_state);
