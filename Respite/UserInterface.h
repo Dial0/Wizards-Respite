@@ -42,7 +42,7 @@ struct UiRenderObjs {
 	std::vector<MatrixTransformStruct> matrixTransform;
 };
 
-UiRenderObjHandle Add_UiRenderObjs(UiRenderObjs UiRenderObjs, bx::Vec3 pos, bgfx::VertexBufferHandle vbh, bgfx::IndexBufferHandle ibh, bgfx::TextureHandle texh, MatrixTransformStruct mtx);
+UiRenderObjHandle Add_UiRenderObjs(UiRenderObjs& UiRenderObjs, bx::Vec3 pos, bgfx::VertexBufferHandle vbh, bgfx::IndexBufferHandle ibh, bgfx::TextureHandle texh, MatrixTransformStruct mtx);
 //get handle
 //get index
 //map handle to index
@@ -55,7 +55,7 @@ UiRenderObjHandle Add_UiRenderObjs(UiRenderObjs UiRenderObjs, bx::Vec3 pos, bgfx
 uint32_t idxFromHandle_UiRenderObjs(UiRenderObjHandle);
 UiRenderObjHandle handleFromIdx_UiRenderObjs(uint32_t);
 
-void Remove_UiRenderObjs(UiRenderObjs UiRenderObjs, UiRenderObjHandle Handle);
+void Remove_UiRenderObjs(UiRenderObjs& UiRenderObjs, UiRenderObjHandle Handle);
 
 
 
@@ -64,4 +64,4 @@ void Remove_UiRenderObjs(UiRenderObjs UiRenderObjs, UiRenderObjHandle Handle);
 
 
 
-void Ui_BuildBlockSelectionUI(std::vector<UiVertexData>& vbo, UiRenderObjs& uiRenderObjs, std::unordered_map<std::string, texture>& TexturesMap, uint16_t screenXRes, uint16_t screenYRes);
+std::vector <UiRenderObjHandle> Ui_BuildBlockSelectionUI(std::vector<UiVertexData>& vbo, UiRenderObjs& uiRenderObjs, std::unordered_map<std::string, texture>& TexturesMap, uint16_t screenXRes, uint16_t screenYRes);

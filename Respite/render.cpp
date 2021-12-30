@@ -86,21 +86,7 @@ void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs,U
 		, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH
 		, 0x303030ff, 1.0f, 0
 	);
-
-
-	for (size_t i = 0; i < staticRenderObjs.pos.size(); i++)
 	{
-
-
-		// Set model matrix for rendering.
-		bgfx::setTransform(staticRenderObjs.matrixTransform[i].mtx);
-
-		// Set vertex and index buffer.
-		bgfx::setVertexBuffer(0, staticRenderObjs.vbh[i]);
-		//bgfx::setIndexBuffer(staticRenderObjs.ibh[i]);
-
-		bgfx::setTexture(0, RenResources.TexColorUniform, staticRenderObjs.texh[i]);
-
 		unsigned long long state = 0
 			| BGFX_STATE_WRITE_RGB
 			| BGFX_STATE_WRITE_A
@@ -112,6 +98,21 @@ void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs,U
 
 		// Set render states.
 		bgfx::setState(state);
+	}
+
+	for (size_t i = 0; i < staticRenderObjs.pos.size(); i++)
+	{
+
+		// Set model matrix for rendering.
+		bgfx::setTransform(staticRenderObjs.matrixTransform[i].mtx);
+
+		// Set vertex and index buffer.
+		bgfx::setVertexBuffer(0, staticRenderObjs.vbh[i]);
+		//bgfx::setIndexBuffer(staticRenderObjs.ibh[i]);
+
+		bgfx::setTexture(0, RenResources.TexColorUniform, staticRenderObjs.texh[i]);
+
+
 
 		// Submit primitive for rendering to view 0.
 		bgfx::submit(RENDER_SCENE_PASS, RenResources.BasicProgram);
@@ -121,9 +122,21 @@ void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs,U
 
 
 
+	const bx::Vec3 at = { 0.0f, 0.0f, 0.0f };
+	const bx::Vec3 eye = { 0.0f, -30.0, 60.0 };
+
+
+	const bx::Vec3 up = { 0.0f, 0.0f, 1.0f };
+
+	// Set view and projection matrix for view 0.
+	//bx::Handness::Right
+	float view[16];
+	bx::mtxLookAt(view, eye, at, up, bx::Handness::Right);
+
+
 	uint16_t RENDER_UI_PASS = 1;
 	bgfx::setViewRect(RENDER_UI_PASS, 0, 0, screen.WIDTH, screen.HEIGHT);
-	bgfx::setViewTransform(RENDER_UI_PASS, cam.view, cam.proj);
+	bgfx::setViewTransform(RENDER_UI_PASS, view, cam.proj);
 	bgfx::setViewName(RENDER_UI_PASS, "UserInterface");
 
 	bgfx::touch(0);
@@ -135,9 +148,9 @@ void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs,U
 
 	for (size_t i = 0; i < uiRenderObjs.vbh.size(); i++)
 	{
-		bgfx::setVertexBuffer(RENDER_UI_PASS, uiRenderObjs.vbh[i]);
+		bgfx::setVertexBuffer(0, uiRenderObjs.vbh[i]);
 		bgfx::setTexture(0, RenResources.TexColorUniform, uiRenderObjs.texh[i]);
-		//bgfx::setTransform(staticRenderObjs.matrixTransform[i].mtx);
+		bgfx::setTransform(uiRenderObjs.matrixTransform[i].mtx);
 
 		unsigned long long state = 0
 			| BGFX_STATE_WRITE_RGB
@@ -154,6 +167,52 @@ void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs,U
 		// Submit primitive for rendering to view 0.
 		bgfx::submit(RENDER_UI_PASS, RenResources.FontProgram);
 	}
+
+	float testmtx[16];
+	bx::mtxRotateZ(testmtx, 0.0f);
+
+	memcpy(RenResources.testmodeldata, testmtx, 16 * sizeof(float));
+	
+
+
+	RENDER_UI_PASS = 2;
+	bgfx::setViewRect(RENDER_UI_PASS, 0, 0, screen.WIDTH, screen.HEIGHT);
+	bgfx::setViewTransform(RENDER_UI_PASS, view, cam.proj);
+	bgfx::setViewName(RENDER_UI_PASS, "UserInterface2");
+
+	bgfx::setViewClear(RENDER_UI_PASS
+		, BGFX_CLEAR_DEPTH
+		, 0x00000000, 1.0f, 0
+	);
+	
+	// Set model matrix for rendering.
+	bgfx::setTransform(RenResources.testmodeldata,2);
+	//bgfx::setTransform(RenResources.testmodeldata,2);
+	// Set vertex and index buffer.
+	bgfx::setVertexBuffer(0, staticRenderObjs.vbh[0]);
+	//bgfx::setIndexBuffer(staticRenderObjs.ibh[i]);
+
+	bgfx::setTexture(0, RenResources.TexColorUniform, staticRenderObjs.texh[0]);
+
+	unsigned long long state = 0
+		| BGFX_STATE_WRITE_RGB
+		| BGFX_STATE_WRITE_A
+		| BGFX_STATE_WRITE_Z
+		| BGFX_STATE_DEPTH_TEST_LESS
+		| BGFX_STATE_MSAA
+		| BGFX_STATE_CULL_CW
+		;
+
+	// Set render states.
+	bgfx::setState(state);
+
+	// Submit primitive for rendering to view 0.
+	
+
+	bgfx::submit(RENDER_UI_PASS, RenResources.Basic3DUiProgram);
+
+
+
 
 	bgfx::frame();
 }

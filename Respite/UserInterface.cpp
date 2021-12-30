@@ -11,13 +11,6 @@ bgfx::VertexDecl UiVertexData::ms_decl;
 
 UiRenderObjHandle getLowestAvalHandle(const std::vector<UiRenderObjHandle>& arr)
 {
-	// Mark arr[i] as visited by
-	// making arr[arr[i] - 1] negative.
-	// Note that 1 is subtracted
-	// because index start
-	// from 0 and positive numbers start from 1
-	// 3,8,4,5,1,7
-
 	std::vector<uint8_t> visited;
 	visited.resize(arr.size(), 1);
 
@@ -44,7 +37,7 @@ UiRenderObjHandle getLowestAvalHandle(const std::vector<UiRenderObjHandle>& arr)
 	return arr.size() + 1;
 }
 
-UiRenderObjHandle Add_UiRenderObjs(UiRenderObjs UiRenderObjs, bx::Vec3 pos, bgfx::VertexBufferHandle vbh, bgfx::IndexBufferHandle ibh, bgfx::TextureHandle texh, MatrixTransformStruct mtx)
+UiRenderObjHandle Add_UiRenderObjs(UiRenderObjs& UiRenderObjs, bx::Vec3 pos, bgfx::VertexBufferHandle vbh, bgfx::IndexBufferHandle ibh, bgfx::TextureHandle texh, MatrixTransformStruct mtx)
 {
 
 	//get new handle
@@ -70,7 +63,7 @@ UiRenderObjHandle Add_UiRenderObjs(UiRenderObjs UiRenderObjs, bx::Vec3 pos, bgfx
 	return NewHandle;
 }
 
-void Remove_UiRenderObjs(UiRenderObjs UiRenderObjs, UiRenderObjHandle Rem_Handle) {
+void Remove_UiRenderObjs(UiRenderObjs& UiRenderObjs, UiRenderObjHandle Rem_Handle) {
 
 	//get index from input handle
 	uint16_t rem_idx = UiRenderObjs.handleToIdx[Rem_Handle];
@@ -178,21 +171,32 @@ void Ui_BuildBox(std::vector<UiVertexData>& vbo, uint16_t screenXRes, uint16_t s
 
 }
 
-void Ui_BuildBlockSelectionUI(std::vector<UiVertexData>& vbo, UiRenderObjs& uiRenderObjs, std::unordered_map<std::string, texture>& TexturesMap, uint16_t screenXRes, uint16_t screenYRes)
+std::vector <UiRenderObjHandle> Ui_BuildBlockSelectionUI(std::vector<UiVertexData>& vbo, UiRenderObjs& uiRenderObjs, std::unordered_map<std::string, texture>& TexturesMap, uint16_t screenXRes, uint16_t screenYRes)
 {
+
+	std::vector <UiRenderObjHandle> BbsHandles;
 	Ui_BuildBox(vbo, screenXRes, screenYRes);
 
 	size_t datasize = sizeof(UiVertexData);
 	bgfx::VertexBufferHandle box = bgfx::createVertexBuffer(bgfx::makeRef(&vbo[0], datasize * vbo.size()), UiVertexData::ms_decl);
 
-	uiRenderObjs.vbh.push_back(box);
-
-	uiRenderObjs.texh.push_back(TexturesMap["ui_box2.png"].texh);
-
-
 	MatrixTransformStruct mtx;
-	bx::mtxTranslate(mtx.mtx, -0.9f, 0.0f, 0);
+	bx::mtxTranslate(mtx.mtx, -0.95f, 0.0f, 0.0f);
+	BbsHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), box, bgfx::IndexBufferHandle(), TexturesMap["ui_box2.png"].texh, mtx));
 
-	uiRenderObjs.matrixTransform.push_back(mtx);
+	bx::mtxTranslate(mtx.mtx, -0.95f, 0.2f, 0.0f);
+	BbsHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), box, bgfx::IndexBufferHandle(), TexturesMap["ui_box2.png"].texh, mtx));
+
+	bx::mtxTranslate(mtx.mtx, -0.95f, -0.2f, 0.0f);
+	BbsHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), box, bgfx::IndexBufferHandle(), TexturesMap["ui_box2.png"].texh, mtx));
+
+	bx::mtxTranslate(mtx.mtx, -0.95f, 0.4f, 0.0f);
+	BbsHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), box, bgfx::IndexBufferHandle(), TexturesMap["ui_box2.png"].texh, mtx));
+
+	bx::mtxTranslate(mtx.mtx, -0.95f, -0.4f, 0.0f);
+	BbsHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), box, bgfx::IndexBufferHandle(), TexturesMap["ui_box2.png"].texh, mtx));
+
+	return BbsHandles;
+
 }
 

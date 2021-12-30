@@ -342,6 +342,8 @@ int main(int argc, char* argv[])
 
 	bgfx::ProgramHandle m_progFont = loadProgram("G:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\vs_font.bin", "G:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\fs_font.bin");
 
+	bgfx::ProgramHandle m_prog3dUi = loadProgram("G:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\vs_basic_ui.bin", "G:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\fs_basic.bin");
+
 
 	//bgfx::ProgramHandle m_progssao = loadProgram("J:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\vs_ssao.bin", "J:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\fs_ssao_2.bin");
 	//bgfx::ProgramHandle m_progssaoblurmerge = loadProgram("J:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\vs_ssaoblurmerge.bin", "J:\\Users\\Ethan\\Documents\\bgfx\\bgfx\\scripts\\shaders\\dx11\\fs_ssaoblurmerge.bin");
@@ -408,6 +410,8 @@ int main(int argc, char* argv[])
 	RenResHandles.BasicProgram = m_progMesh;
 	RenResHandles.FontProgram = m_progFont;
 	RenResHandles.TexColorUniform = s_texColor;
+	RenResHandles.Basic3DUiProgram = m_prog3dUi;
+	
 
 	struct Cursor {
 		uint8_t x = chunksizex/2;
@@ -419,6 +423,12 @@ int main(int argc, char* argv[])
 
 	Uint8* previous_keyState = new Uint8[numkeys_state];
 	memcpy(previous_keyState, state, numkeys_state);
+
+
+	UiRenderObjs uiRenderObjs;
+	std::vector <UiRenderObjHandle> bbsHandles = Ui_BuildBlockSelectionUI(vbo, uiRenderObjs, TexturesMap, WIDTH, HEIGHT);
+
+
 	while (!quit)
 	{
 		lastUpdate = current;
@@ -465,7 +475,9 @@ int main(int argc, char* argv[])
 		// Use this to render 3d onto UI layer
 		//float height = 1.0f / tan(bx::toRad(30.0f) * 0.5f);
 		//float width = height * 1.0f / (float(WIDTH) / float(HEIGHT));
-		//TestmtxProjXYWH(proj,0.5,0.5, 9.0f/3.0f, 16.0f/3.0f, 0.1f,1000.0f, bgfx::getCaps()->homogeneousDepth, bx::Handness::Right);
+		TestmtxProjXYWH(&RenResHandles.testmodeldata[16], 0.9, 0.0, 9.0f / 3.0f, 16.0f / 3.0f, 0.1f, 1000.0f, bgfx::getCaps()->homogeneousDepth, bx::Handness::Right);
+		//TestmtxProjXYWH(proj, 0.5, 0.5, 9.0f / 3.0f, 16.0f / 3.0f, 0.1f, 1000.0f, bgfx::getCaps()->homogeneousDepth, bx::Handness::Right);
+		
 
 		bx::mtxProj(proj2,
 			30.0f,
@@ -816,8 +828,7 @@ int main(int argc, char* argv[])
 
 
 
-		UiRenderObjs uiRenderObjs;
-		Ui_BuildBlockSelectionUI(vbo,uiRenderObjs, TexturesMap, WIDTH, HEIGHT);
+
 
 		renderFrame(RenCam, RenScreen, staticRenderObjs, uiRenderObjs, RenResHandles, font_vbh, TexturesMap["rainyhearts.png"].texh);
 		//renderFrame(RenCam, RenScreen, staticRenderObjs, RenResHandles, font_vbh, TexturesMap["rainyhearts.png"].texh);

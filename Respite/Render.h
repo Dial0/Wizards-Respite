@@ -82,6 +82,7 @@ static const int32_t cMaxBlurPassCount = 6;
 struct RenderResources {
 
 	bgfx::ProgramHandle BasicProgram;
+	bgfx::ProgramHandle Basic3DUiProgram;
 	bgfx::ProgramHandle FontProgram;
 
 	bgfx::UniformHandle TexColorUniform;
@@ -89,6 +90,8 @@ struct RenderResources {
 	float   m_view[16];
 	float   m_proj[16];
 	float   m_proj2[16];
+
+	float testmodeldata[32];
 };
 
 
