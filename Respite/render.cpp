@@ -1,5 +1,5 @@
 #include "Render.h"
-
+#include <SDL.h>
 
 bgfx::VertexDecl PosTexCoord0Vertex::ms_decl;
 // Utility function to draw a screen space quad for deferred rendering
@@ -71,7 +71,7 @@ void loadRenderResources(RenderResources& ResourceHandles, screen screen)
 }
 
 
-void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs,UiRenderObjs& uiRenderObjs, RenderResources RenResources, bgfx::VertexBufferHandle Font_vbh, bgfx::TextureHandle font_th ) 
+void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs,UiRenderObjs& uiRenderObjs, Ui3DRenderObjs& ui3DRenderObjs, RenderResources RenResources, bgfx::VertexBufferHandle Font_vbh, bgfx::TextureHandle font_th )
 //void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs, RenderResources RenResources, bgfx::VertexBufferHandle Font_vbh, bgfx::TextureHandle font_th)
 {
 
@@ -123,7 +123,7 @@ void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs,U
 
 
 	const bx::Vec3 at = { 0.0f, 0.0f, 0.0f };
-	const bx::Vec3 eye = { 0.0f, -30.0, 60.0 };
+	const bx::Vec3 eye = { 0.0f, -45.0, 45.0 };
 
 
 	const bx::Vec3 up = { 0.0f, 0.0f, 1.0f };
@@ -168,48 +168,74 @@ void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs,U
 		bgfx::submit(RENDER_UI_PASS, RenResources.FontProgram);
 	}
 
-	float testmtx[16];
-	bx::mtxRotateZ(testmtx, 0.0f);
+	for (size_t i = 1; i < ui3DRenderObjs.idxToHandle.size(); i++)
+	{
+		float testmtx[32];
+		float sinetest = bx::sin(bx::kPi2 * SDL_GetTicks() / 3000.0f) + 1.0f;
+		bx::mtxRotateZ(testmtx, sinetest);
+		memcpy(&testmtx[16], ui3DRenderObjs.perspectiveMatrixTransform[i].mtx, 16 * sizeof(float));
 
-	memcpy(RenResources.testmodeldata, testmtx, 16 * sizeof(float));
-	
+		bgfx::setTransform(testmtx, 2);
+		bgfx::setVertexBuffer(0, ui3DRenderObjs.vbh[i]);
+		bgfx::setTexture(0, RenResources.TexColorUniform, ui3DRenderObjs.texh[i]);
+
+		unsigned long long state = 0
+			| BGFX_STATE_WRITE_RGB
+			| BGFX_STATE_WRITE_A
+			| BGFX_STATE_WRITE_Z
+			| BGFX_STATE_DEPTH_TEST_LESS
+			| BGFX_STATE_MSAA
+			| BGFX_STATE_CULL_CW
+			;
+
+		// Set render states.
+		bgfx::setState(state);
+
+		bgfx::submit(RENDER_UI_PASS, RenResources.Basic3DUiProgram);
+	}
+
+	//float testmtx[16];
+	//bx::mtxRotateZ(testmtx, 0.0f);
+
+	//memcpy(RenResources.testmodeldata, testmtx, 16 * sizeof(float));
+	//
 
 
-	RENDER_UI_PASS = 2;
-	bgfx::setViewRect(RENDER_UI_PASS, 0, 0, screen.WIDTH, screen.HEIGHT);
-	bgfx::setViewTransform(RENDER_UI_PASS, view, cam.proj);
-	bgfx::setViewName(RENDER_UI_PASS, "UserInterface2");
+	////RENDER_UI_PASS = 2;
+	//bgfx::setViewRect(RENDER_UI_PASS, 0, 0, screen.WIDTH, screen.HEIGHT);
+	//bgfx::setViewTransform(RENDER_UI_PASS, view, cam.proj);
+	//bgfx::setViewName(RENDER_UI_PASS, "UserInterface2");
 
-	bgfx::setViewClear(RENDER_UI_PASS
-		, BGFX_CLEAR_DEPTH
-		, 0x00000000, 1.0f, 0
-	);
-	
-	// Set model matrix for rendering.
-	bgfx::setTransform(RenResources.testmodeldata,2);
+	////bgfx::setViewClear(RENDER_UI_PASS
+	////	, BGFX_CLEAR_DEPTH
+	////	, 0x00000000, 1.0f, 0
+	////);
+	//
+	//// Set model matrix for rendering.
 	//bgfx::setTransform(RenResources.testmodeldata,2);
-	// Set vertex and index buffer.
-	bgfx::setVertexBuffer(0, staticRenderObjs.vbh[0]);
-	//bgfx::setIndexBuffer(staticRenderObjs.ibh[i]);
+	////bgfx::setTransform(RenResources.testmodeldata,2);
+	//// Set vertex and index buffer.
+	//bgfx::setVertexBuffer(0, staticRenderObjs.vbh[0]);
+	////bgfx::setIndexBuffer(staticRenderObjs.ibh[i]);
 
-	bgfx::setTexture(0, RenResources.TexColorUniform, staticRenderObjs.texh[0]);
+	//bgfx::setTexture(0, RenResources.TexColorUniform, staticRenderObjs.texh[0]);
 
-	unsigned long long state = 0
-		| BGFX_STATE_WRITE_RGB
-		| BGFX_STATE_WRITE_A
-		| BGFX_STATE_WRITE_Z
-		| BGFX_STATE_DEPTH_TEST_LESS
-		| BGFX_STATE_MSAA
-		| BGFX_STATE_CULL_CW
-		;
+	//unsigned long long state = 0
+	//	| BGFX_STATE_WRITE_RGB
+	//	| BGFX_STATE_WRITE_A
+	//	| BGFX_STATE_WRITE_Z
+	//	| BGFX_STATE_DEPTH_TEST_LESS
+	//	| BGFX_STATE_MSAA
+	//	| BGFX_STATE_CULL_CW
+	//	;
 
-	// Set render states.
-	bgfx::setState(state);
+	//// Set render states.
+	//bgfx::setState(state);
 
-	// Submit primitive for rendering to view 0.
-	
+	//// Submit primitive for rendering to view 0.
+	//
 
-	bgfx::submit(RENDER_UI_PASS, RenResources.Basic3DUiProgram);
+	//bgfx::submit(RENDER_UI_PASS, RenResources.Basic3DUiProgram);
 
 
 

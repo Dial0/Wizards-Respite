@@ -175,7 +175,6 @@ void updateactor(actor& actor, double dT)
 
 
 void* load(const char* filename, size_t& size) {
-	/// Opens a file and returns a bgfx::Memory of the raw data. The lifetime of the data is controlled by bgfx
 	std::ifstream fs(filename, std::ios::in | std::ios::binary);
 	if (!fs.is_open()) {
 		return NULL;
@@ -268,21 +267,7 @@ uint8_t update_cursor(uint8_t initalValue, int16_t updateAmount, uint8_t lowerLi
 }
 
 
-void TestmtxProjXYWH(float* _result, float _x, float _y, float _width, float _height, float _near, float _far, bool _homogeneousNdc, bx::Handness::Enum _handness)
-{
-	const float diff = _far - _near;
-	const float aa = _homogeneousNdc ? (_far + _near) / diff : _far / diff;
-	const float bb = _homogeneousNdc ? (2.0f * _far * _near) / diff : _near * aa;
 
-	bx::memSet(_result, 0, sizeof(float) * 16);
-	_result[0] = _width;
-	_result[5] = _height;
-	_result[8] = (bx::Handness::Right == _handness) ? _x : -_x;
-	_result[9] = (bx::Handness::Right == _handness) ? _y : -_y;
-	_result[10] = (bx::Handness::Right == _handness) ? -aa : aa;
-	_result[11] = (bx::Handness::Right == _handness) ? -1.0f : 1.0f;
-	_result[14] = -bb;
-}
 
 
 int main(int argc, char* argv[])
@@ -426,8 +411,8 @@ int main(int argc, char* argv[])
 
 
 	UiRenderObjs uiRenderObjs;
-	std::vector <UiRenderObjHandle> bbsHandles = Ui_BuildBlockSelectionUI(vbo, uiRenderObjs, TexturesMap, WIDTH, HEIGHT);
-
+	Ui3DRenderObjs ui3DRenderObjs;
+	UiWindow BBSWindow = Ui_BuildBlockSelectionUI(uiRenderObjs, ui3DRenderObjs, TexturesMap, StaticPropMap, WIDTH, HEIGHT);
 
 	while (!quit)
 	{
@@ -475,7 +460,7 @@ int main(int argc, char* argv[])
 		// Use this to render 3d onto UI layer
 		//float height = 1.0f / tan(bx::toRad(30.0f) * 0.5f);
 		//float width = height * 1.0f / (float(WIDTH) / float(HEIGHT));
-		TestmtxProjXYWH(&RenResHandles.testmodeldata[16], 0.9, 0.0, 9.0f / 3.0f, 16.0f / 3.0f, 0.1f, 1000.0f, bgfx::getCaps()->homogeneousDepth, bx::Handness::Right);
+		
 		//TestmtxProjXYWH(proj, 0.5, 0.5, 9.0f / 3.0f, 16.0f / 3.0f, 0.1f, 1000.0f, bgfx::getCaps()->homogeneousDepth, bx::Handness::Right);
 		
 
@@ -830,7 +815,7 @@ int main(int argc, char* argv[])
 
 
 
-		renderFrame(RenCam, RenScreen, staticRenderObjs, uiRenderObjs, RenResHandles, font_vbh, TexturesMap["rainyhearts.png"].texh);
+		renderFrame(RenCam, RenScreen, staticRenderObjs, uiRenderObjs, ui3DRenderObjs, RenResHandles, font_vbh, TexturesMap["rainyhearts.png"].texh);
 		//renderFrame(RenCam, RenScreen, staticRenderObjs, RenResHandles, font_vbh, TexturesMap["rainyhearts.png"].texh);
 
 

@@ -93,10 +93,39 @@ void Remove_UiRenderObjs(UiRenderObjs& UiRenderObjs, UiRenderObjHandle Rem_Handl
 	UiRenderObjs.ibh.pop_back();
 	UiRenderObjs.texh.pop_back();
 	UiRenderObjs.matrixTransform.pop_back();
-	
+
 	//remove input handle from handletoidx map
 	UiRenderObjs.handleToIdx.erase(Rem_Handle);
 }
+
+Ui3DRenderObjHandle Add_Ui3DRenderObjs(Ui3DRenderObjs& Ui3DRenderObjs, bgfx::VertexBufferHandle vbh, bgfx::IndexBufferHandle ibh, bgfx::TextureHandle texh, MatrixTransformStruct proj, MatrixTransformStruct mtx)
+{
+
+	//get new handle
+	Ui3DRenderObjHandle NewHandle = getLowestAvalHandle(Ui3DRenderObjs.idxToHandle);
+
+	//get index
+	//map idx to handle
+	Ui3DRenderObjs.idxToHandle.push_back(NewHandle);
+	uint16_t idx = Ui3DRenderObjs.idxToHandle.size() - 1;
+
+	//map handle to index
+	Ui3DRenderObjs.handleToIdx[NewHandle] = idx;
+
+	//push back all arrays with inputs
+
+	//do we want to check all arrays are the same length?
+	Ui3DRenderObjs.vbh.push_back(vbh);
+	Ui3DRenderObjs.ibh.push_back(ibh);
+	Ui3DRenderObjs.texh.push_back(texh);
+	Ui3DRenderObjs.perspectiveMatrixTransform.push_back(proj);
+	Ui3DRenderObjs.matrixTransform_2D.push_back(mtx);
+
+	return NewHandle;
+}
+
+
+
 
 
 
@@ -171,32 +200,69 @@ void Ui_BuildBox(std::vector<UiVertexData>& vbo, uint16_t screenXRes, uint16_t s
 
 }
 
-std::vector <UiRenderObjHandle> Ui_BuildBlockSelectionUI(std::vector<UiVertexData>& vbo, UiRenderObjs& uiRenderObjs, std::unordered_map<std::string, texture>& TexturesMap, uint16_t screenXRes, uint16_t screenYRes)
-{
 
-	std::vector <UiRenderObjHandle> BbsHandles;
-	Ui_BuildBox(vbo, screenXRes, screenYRes);
+void TestmtxProjXYWH(float* _result, float _x, float _y, float _width, float _height, float _near, float _far, bool _homogeneousNdc, bx::Handness::Enum _handness)
+{
+	const float diff = _far - _near;
+	const float aa = _homogeneousNdc ? (_far + _near) / diff : _far / diff;
+	const float bb = _homogeneousNdc ? (2.0f * _far * _near) / diff : _near * aa;
+
+	bx::memSet(_result, 0, sizeof(float) * 16);
+	_result[0] = _width;
+	_result[5] = _height;
+	_result[8] = (bx::Handness::Right == _handness) ? _x : -_x;
+	_result[9] = (bx::Handness::Right == _handness) ? _y : -_y;
+	_result[10] = (bx::Handness::Right == _handness) ? -aa : aa;
+	_result[11] = (bx::Handness::Right == _handness) ? -1.0f : 1.0f;
+	_result[14] = -bb;
+}
+
+UiWindow Ui_BuildBlockSelectionUI(UiRenderObjs& uiRenderObjs, Ui3DRenderObjs& ui3DRenderObjs,
+	std::unordered_map<std::string, texture>& TexturesMap, std::unordered_map<std::string, StaticProp> StaticPropMap, uint16_t screenXRes, uint16_t screenYRes)
+{
+	UiWindow BBSWindow;
+	BBSWindow.VertexBuffers.push_back(std::vector< UiVertexData>());
+	Ui_BuildBox(BBSWindow.VertexBuffers[0], screenXRes, screenYRes);
 
 	size_t datasize = sizeof(UiVertexData);
-	bgfx::VertexBufferHandle box = bgfx::createVertexBuffer(bgfx::makeRef(&vbo[0], datasize * vbo.size()), UiVertexData::ms_decl);
+	bgfx::VertexBufferHandle box = bgfx::createVertexBuffer(bgfx::makeRef(&BBSWindow.VertexBuffers[0][0], datasize * BBSWindow.VertexBuffers[0].size()), UiVertexData::ms_decl);
 
 	MatrixTransformStruct mtx;
-	bx::mtxTranslate(mtx.mtx, -0.95f, 0.0f, 0.0f);
-	BbsHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), box, bgfx::IndexBufferHandle(), TexturesMap["ui_box2.png"].texh, mtx));
+	bx::mtxTranslate(mtx.mtx, -0.95f, 0.0f, 0.9f);
+	BBSWindow.UiHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), box, bgfx::IndexBufferHandle(), TexturesMap["ui_box2.png"].texh, mtx));
 
-	bx::mtxTranslate(mtx.mtx, -0.95f, 0.2f, 0.0f);
-	BbsHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), box, bgfx::IndexBufferHandle(), TexturesMap["ui_box2.png"].texh, mtx));
+	bx::mtxTranslate(mtx.mtx, -0.95f, 0.2f, 0.9f);
+	BBSWindow.UiHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), box, bgfx::IndexBufferHandle(), TexturesMap["ui_box2.png"].texh, mtx));
 
-	bx::mtxTranslate(mtx.mtx, -0.95f, -0.2f, 0.0f);
-	BbsHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), box, bgfx::IndexBufferHandle(), TexturesMap["ui_box2.png"].texh, mtx));
+	bx::mtxTranslate(mtx.mtx, -0.95f, -0.2f, 0.9f);
+	BBSWindow.UiHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), box, bgfx::IndexBufferHandle(), TexturesMap["ui_box2.png"].texh, mtx));
 
-	bx::mtxTranslate(mtx.mtx, -0.95f, 0.4f, 0.0f);
-	BbsHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), box, bgfx::IndexBufferHandle(), TexturesMap["ui_box2.png"].texh, mtx));
+	bx::mtxTranslate(mtx.mtx, -0.95f, 0.4f, 0.9f);
+	BBSWindow.UiHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), box, bgfx::IndexBufferHandle(), TexturesMap["ui_box2.png"].texh, mtx));
 
-	bx::mtxTranslate(mtx.mtx, -0.95f, -0.4f, 0.0f);
-	BbsHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), box, bgfx::IndexBufferHandle(), TexturesMap["ui_box2.png"].texh, mtx));
+	bx::mtxTranslate(mtx.mtx, -0.95f, -0.4f, 0.9f);
+	BBSWindow.UiHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), box, bgfx::IndexBufferHandle(), TexturesMap["ui_box2.png"].texh, mtx));
 
-	return BbsHandles;
+
+	//
+
+	for (size_t i = 0; i < 4; i++)
+	{
+		MatrixTransformStruct proj;
+		TestmtxProjXYWH(proj.mtx, 0.9, -0.49 + (0.2*i), 9.0f / 3.0f, 16.0f / 3.0f, 60.0f, 70.0f, bgfx::getCaps()->homogeneousDepth, bx::Handness::Right);
+
+		MatrixTransformStruct mtx;
+		bx::mtxTranslate(mtx.mtx, 0.0, 0.0f, 0.0f);
+		BBSWindow.Ui3DHandles.push_back(Add_Ui3DRenderObjs(ui3DRenderObjs,
+			StaticPropMap[block_str[i]].p_Meshcontainer.vbh,
+			StaticPropMap[block_str[i]].p_Meshcontainer.ibh,
+			StaticPropMap[block_str[i]].p_texture.texh,
+			proj,
+			mtx));
+	}
+	
+
+	return BBSWindow;
 
 }
 

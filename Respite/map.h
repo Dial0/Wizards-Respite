@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <string>
 
 static const uint32_t chunksizex = 32;
 static const uint32_t chunksizey = 32;
@@ -7,7 +8,7 @@ static const uint32_t chunksizez = 3;
 static const uint32_t chunkMapsize = chunksizex * chunksizey * chunksizez;
 
 enum block_type { air, dirt, grass_drit, stone };
-static const char* block_str[] = { "Air", "Dirt", "Grassy Dirt", "Stone"};
+static const std::vector<std::string> block_str = { "Air", "Dirt", "Grassy Dirt", "Stone"};
 static const std::vector<block_type> block_emums = {block_type::air,block_type::dirt,block_type::grass_drit,block_type::stone};
 
 
