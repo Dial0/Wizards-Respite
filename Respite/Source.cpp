@@ -23,8 +23,8 @@
 
 
 
-const int WIDTH = 1280;
-const int HEIGHT = 720;
+const int WIDTH = 1920;
+const int HEIGHT = 1080;
 
 //object occlusion
 //
@@ -412,7 +412,7 @@ int main(int argc, char* argv[])
 
 	UiRenderObjs uiRenderObjs;
 	Ui3DRenderObjs ui3DRenderObjs;
-	UiWindow BBSWindow = Ui_BuildBlockSelectionUI(uiRenderObjs, ui3DRenderObjs, TexturesMap, StaticPropMap, WIDTH, HEIGHT);
+	UiWindow BBSWindow = Ui_BuildBlockSelectionUI(uiRenderObjs, ui3DRenderObjs, cursor.enum_vec_idx, TexturesMap, StaticPropMap, WIDTH, HEIGHT);
 
 	while (!quit)
 	{
@@ -692,6 +692,10 @@ int main(int argc, char* argv[])
 
 		if (state[SDL_SCANCODE_LEFTBRACKET] && !previous_keyState[SDL_SCANCODE_LEFTBRACKET])
 		{
+			uint32_t idx = uiRenderObjs.handleToIdx[BBSWindow.UiHandles[1]];
+			MatrixTransformStruct mtx2;
+			bx::mtxTranslate(mtx2.mtx, 0.0f, +0.148148149, 0.0f);
+			bx::mtxMul(uiRenderObjs.matrixTransform[idx].mtx, uiRenderObjs.matrixTransform[idx].mtx, mtx2.mtx);
 			
 			if (cursor.enum_vec_idx > 0)
 			{
@@ -707,6 +711,12 @@ int main(int argc, char* argv[])
 
 		if (state[SDL_SCANCODE_RIGHTBRACKET] && !previous_keyState[SDL_SCANCODE_RIGHTBRACKET])
 		{
+
+			uint32_t idx = uiRenderObjs.handleToIdx[BBSWindow.UiHandles[1]];
+			MatrixTransformStruct mtx2;
+			bx::mtxTranslate(mtx2.mtx, 0.0f, -0.148148149, 0.0f);
+			bx::mtxMul(uiRenderObjs.matrixTransform[idx].mtx, uiRenderObjs.matrixTransform[idx].mtx, mtx2.mtx);
+
 			cursor.enum_vec_idx++;
 			if (cursor.enum_vec_idx >= block_emums.size())
 			{

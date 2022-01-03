@@ -91,5 +91,5 @@ struct UiWindow {
 
 
 
-UiWindow Ui_BuildBlockSelectionUI(UiRenderObjs& uiRenderObjs, Ui3DRenderObjs& ui3DRenderObjs,
+UiWindow Ui_BuildBlockSelectionUI(UiRenderObjs& uiRenderObjs, Ui3DRenderObjs& ui3DRenderObjs, uint32_t cursor_enum_vec_idx,
 	std::unordered_map<std::string, texture>& TexturesMap, std::unordered_map<std::string, StaticProp> StaticPropMap, uint16_t screenXRes, uint16_t screenYRes);

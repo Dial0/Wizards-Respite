@@ -1,5 +1,6 @@
 Name,Mesh,Texture
 TestCube,test_cube.mesh,CubeTest.png
+Air,Stone_Block.mesh,Cursor.png
 Cursor,Stone_Block.mesh,Cursor.png
 TestPlane,test_plane.mesh,CubeTest.png
 Stone,Stone_Block.mesh,TileMap.png

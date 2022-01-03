@@ -168,7 +168,7 @@ void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs,U
 		bgfx::submit(RENDER_UI_PASS, RenResources.FontProgram);
 	}
 
-	for (size_t i = 1; i < ui3DRenderObjs.idxToHandle.size(); i++)
+	for (size_t i = 0; i < ui3DRenderObjs.idxToHandle.size(); i++)
 	{
 		float testmtx[32];
 		float sinetest = bx::sin(bx::kPi2 * SDL_GetTicks() / 3000.0f) + 1.0f;
