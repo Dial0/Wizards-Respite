@@ -692,11 +692,6 @@ int main(int argc, char* argv[])
 
 		if (state[SDL_SCANCODE_LEFTBRACKET] && !previous_keyState[SDL_SCANCODE_LEFTBRACKET])
 		{
-			uint32_t idx = uiRenderObjs.handleToIdx[BBSWindow.UiHandles[1]];
-			MatrixTransformStruct mtx2;
-			bx::mtxTranslate(mtx2.mtx, 0.0f, +0.148148149, 0.0f);
-			bx::mtxMul(uiRenderObjs.matrixTransform[idx].mtx, uiRenderObjs.matrixTransform[idx].mtx, mtx2.mtx);
-			
 			if (cursor.enum_vec_idx > 0)
 			{
 				cursor.enum_vec_idx--;
@@ -707,15 +702,26 @@ int main(int argc, char* argv[])
 			}
 
 			cursor.cur_block = block_emums[cursor.enum_vec_idx];
+
+
+			for (size_t i = 0; i < BBSWindow.UiHandles.size(); i++)
+			{
+				Remove_UiRenderObjs(uiRenderObjs, BBSWindow.UiHandles[i]);
+			}
+
+			for (size_t i = 0; i < BBSWindow.Ui3DHandles.size(); i++)
+			{
+				Remove_Ui3DRenderObjs(ui3DRenderObjs, BBSWindow.Ui3DHandles[i]);
+			}
+
+			BBSWindow.VertexBuffers.clear();
+
+			BBSWindow = Ui_BuildBlockSelectionUI(uiRenderObjs, ui3DRenderObjs, cursor.enum_vec_idx, TexturesMap, StaticPropMap, WIDTH, HEIGHT);
 		}
 
 		if (state[SDL_SCANCODE_RIGHTBRACKET] && !previous_keyState[SDL_SCANCODE_RIGHTBRACKET])
 		{
 
-			uint32_t idx = uiRenderObjs.handleToIdx[BBSWindow.UiHandles[1]];
-			MatrixTransformStruct mtx2;
-			bx::mtxTranslate(mtx2.mtx, 0.0f, -0.148148149, 0.0f);
-			bx::mtxMul(uiRenderObjs.matrixTransform[idx].mtx, uiRenderObjs.matrixTransform[idx].mtx, mtx2.mtx);
 
 			cursor.enum_vec_idx++;
 			if (cursor.enum_vec_idx >= block_emums.size())
@@ -724,6 +730,21 @@ int main(int argc, char* argv[])
 			}
 
 			cursor.cur_block = block_emums[cursor.enum_vec_idx];
+
+			for (size_t i = 0; i < BBSWindow.UiHandles.size(); i++)
+			{
+				Remove_UiRenderObjs(uiRenderObjs, BBSWindow.UiHandles[i]);
+			}
+
+			for (size_t i = 0; i < BBSWindow.Ui3DHandles.size(); i++)
+			{
+				Remove_Ui3DRenderObjs(ui3DRenderObjs, BBSWindow.Ui3DHandles[i]);
+			}
+
+			BBSWindow.VertexBuffers.clear();
+
+
+			BBSWindow = Ui_BuildBlockSelectionUI(uiRenderObjs, ui3DRenderObjs, cursor.enum_vec_idx, TexturesMap, StaticPropMap, WIDTH, HEIGHT);
 		}
 
 		if (state[SDL_SCANCODE_P])

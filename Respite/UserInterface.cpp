@@ -125,7 +125,39 @@ Ui3DRenderObjHandle Add_Ui3DRenderObjs(Ui3DRenderObjs& Ui3DRenderObjs, bgfx::Ver
 }
 
 
+void Remove_Ui3DRenderObjs(Ui3DRenderObjs& Ui3DRenderObjs, Ui3DRenderObjHandle Rem_Handle) {
 
+	//get index from input handle
+	uint16_t rem_idx = Ui3DRenderObjs.handleToIdx[Rem_Handle];
+	uint16_t end_idx = Ui3DRenderObjs.idxToHandle.size() - 1;
+
+	if (rem_idx != end_idx) //check if we are removing the last element
+	{
+		//get the handle of the last element
+		UiRenderObjHandle lastElementHandle = Ui3DRenderObjs.idxToHandle[end_idx];
+		//swap element to be removed with the last element for all arrays
+		std::swap(Ui3DRenderObjs.idxToHandle[rem_idx], Ui3DRenderObjs.idxToHandle[end_idx]);
+		std::swap(Ui3DRenderObjs.vbh[rem_idx], Ui3DRenderObjs.vbh[end_idx]);
+		std::swap(Ui3DRenderObjs.ibh[rem_idx], Ui3DRenderObjs.ibh[end_idx]);
+		std::swap(Ui3DRenderObjs.texh[rem_idx], Ui3DRenderObjs.texh[end_idx]);
+		std::swap(Ui3DRenderObjs.matrixTransform_2D[rem_idx], Ui3DRenderObjs.matrixTransform_2D[end_idx]);
+		std::swap(Ui3DRenderObjs.perspectiveMatrixTransform[rem_idx], Ui3DRenderObjs.perspectiveMatrixTransform[end_idx]);
+
+		//update index for swapped handle
+		Ui3DRenderObjs.handleToIdx[lastElementHandle] = rem_idx;
+	}
+
+	//pop last element for all arrays
+	Ui3DRenderObjs.idxToHandle.pop_back();
+	Ui3DRenderObjs.matrixTransform_2D.pop_back();
+	Ui3DRenderObjs.vbh.pop_back();
+	Ui3DRenderObjs.ibh.pop_back();
+	Ui3DRenderObjs.texh.pop_back();
+	Ui3DRenderObjs.perspectiveMatrixTransform.pop_back();
+
+	//remove input handle from handletoidx map
+	Ui3DRenderObjs.handleToIdx.erase(Rem_Handle);
+}
 
 
 
@@ -289,8 +321,8 @@ void TestmtxProjXYWH(float* _result, float _x, float _y, float _width, float _he
 UiWindow Ui_BuildBlockSelectionUI(UiRenderObjs& uiRenderObjs, Ui3DRenderObjs& ui3DRenderObjs, const uint32_t cursor_enum_vec_idx,
 	std::unordered_map<std::string, texture>& TexturesMap, std::unordered_map<std::string, StaticProp> StaticPropMap, const uint16_t screenXRes, const uint16_t screenYRes)
 {
-	const uint16_t base_res_x = 1280;
-	const uint16_t base_res_y = 720;
+	const int base_res_x = 1280;
+	const int base_res_y = 720;
 
 	const float scale_ratio_x = float(base_res_x) / float(screenXRes);
 	const float scale_ratio_y = float(base_res_y) / float(screenYRes);
@@ -320,31 +352,37 @@ UiWindow Ui_BuildBlockSelectionUI(UiRenderObjs& uiRenderObjs, Ui3DRenderObjs& ui
 	height *= scale_ratio_y;
 	width *= scale_ratio_y;
 
-	const uint32_t num_aval_blocks = block_emums.size();
-	const uint32_t max_shown_blocks = 5;
-	const uint32_t show_blocks = std::min(num_aval_blocks, max_shown_blocks);
+	const int blocks_above_cursor = cursor_enum_vec_idx;
+	const int blocks_below_cursor = block_emums.size() - cursor_enum_vec_idx - 1;
+
+	const int max_shown_blocks = 5;
+	const int show_above_cursor = std::min(blocks_above_cursor, max_shown_blocks/2);
+	const int hidden_above_cursor = blocks_above_cursor - show_above_cursor;
+	const int show_below_cursor = std::min(blocks_below_cursor, max_shown_blocks/2);
+
+	const int num_aval_blocks = block_emums.size();
+	const int show_blocks = std::min(num_aval_blocks, max_shown_blocks);
 
 
-	const int start = (show_blocks - 1) / 2;
+	const int start = show_above_cursor;
+	const int end = show_above_cursor + 1 + show_below_cursor;
 	const float start_pos_y = vertical_box_spacing * start;
 	const float start3D_pos_y = (vertical_box_spacing * start) - (vertical_box_spacing * 2);
 
-	for (size_t i = 0; i < show_blocks; i++)
+	MatrixTransformStruct mtx;
+	float offset_x = 9 * pixel_sz_x;
+	float offset_y = 9 * pixel_sz_y;
+	bx::mtxTranslate(mtx.mtx, left_side_offset - offset_x, -offset_y, 0.91f);
+	BBSWindow.UiHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), boxCursor, bgfx::IndexBufferHandle(), TexturesMap["cursor.png"].texh, mtx));
+
+	for (size_t i = 0; i < end; i++)
 	{
-		MatrixTransformStruct mtx;
+
 
 		float posy = start_pos_y - vertical_box_spacing * i;
 
 		bx::mtxTranslate(mtx.mtx, left_side_offset, posy, 0.9f);
 		BBSWindow.UiHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), box, bgfx::IndexBufferHandle(), TexturesMap["ui_box2.png"].texh, mtx));
-
-		if (i == cursor_enum_vec_idx)
-		{
-			float offset_x = 9 * pixel_sz_x;
-			float offset_y = 9 * pixel_sz_y;
-			bx::mtxTranslate(mtx.mtx, left_side_offset - offset_x, posy - offset_y, 0.91f);
-			BBSWindow.UiHandles.push_back(Add_UiRenderObjs(uiRenderObjs, bx::Vec3(), boxCursor, bgfx::IndexBufferHandle(), TexturesMap["cursor.png"].texh, mtx));
-		}
 
 		MatrixTransformStruct proj;
 
@@ -356,9 +394,9 @@ UiWindow Ui_BuildBlockSelectionUI(UiRenderObjs& uiRenderObjs, Ui3DRenderObjs& ui
 		MatrixTransformStruct mtx3D;
 		bx::mtxTranslate(mtx3D.mtx, 0.0, 0.0f, 0.0f);
 		BBSWindow.Ui3DHandles.push_back(Add_Ui3DRenderObjs(ui3DRenderObjs,
-			StaticPropMap[block_str[i]].p_Meshcontainer.vbh,
-			StaticPropMap[block_str[i]].p_Meshcontainer.ibh,
-			StaticPropMap[block_str[i]].p_texture.texh,
+			StaticPropMap[block_str[i+ hidden_above_cursor]].p_Meshcontainer.vbh,
+			StaticPropMap[block_str[i + hidden_above_cursor]].p_Meshcontainer.ibh,
+			StaticPropMap[block_str[i + hidden_above_cursor]].p_texture.texh,
 			proj,
 			mtx));
 	}
