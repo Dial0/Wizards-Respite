@@ -4,12 +4,12 @@
 
 static const uint32_t chunksizex = 32;
 static const uint32_t chunksizey = 32;
-static const uint32_t chunksizez = 3;
+static const uint32_t chunksizez = 16;
 static const uint32_t chunkMapsize = chunksizex * chunksizey * chunksizez;
 
-enum block_type { air, dirt, grass_drit, stone };
-static const std::vector<std::string> block_str = { "Air", "Dirt", "Grassy Dirt", "Stone"};
-static const std::vector<block_type> block_emums = {block_type::air,block_type::dirt,block_type::grass_drit,block_type::stone};
+
+#include "block_ids.h"
+
 
 
 struct MapChunk {
@@ -17,6 +17,7 @@ struct MapChunk {
     uint32_t sizey = chunksizey;
     uint32_t sizez = chunksizez;
     block_type BlockMap[chunkMapsize];
+    uint8_t rot[chunkMapsize];
 };
 
 struct MapLoc {

@@ -1,8 +1,4 @@
-Name,Mesh,Texture
-TestCube,test_cube.mesh,CubeTest.png
-Cursor,Stone_Block.mesh,Cursor.png
-TestPlane,test_plane.mesh,CubeTest.png
-Air,Stone_Block.mesh,Cursor.png
+Name,FileName,Texture
 Dirt Block,Dirt_Block.mesh,TileMap.png
 Stone Block,Stone_Block.mesh,TileMap.png
 Grass Dirt Block,Grass_Dirt_Block.mesh,TileMap.png
@@ -15,4 +11,3 @@ Tree Block,Tree_Block.mesh,TileMap.png
 Tree Top,Tree_Top.mesh,TileMap.png
 Tree Ramp,Tree_Ramp.mesh,TileMap.png
 Tree Stump,Tree_Stump.mesh,TileMap.png
-test corner,Terrain_Grass_Dirt_Corner.mesh,TileMapTest.png

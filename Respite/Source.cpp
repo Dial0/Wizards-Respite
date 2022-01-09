@@ -211,8 +211,8 @@ int BuildRenobjsFromMap(MapChunk* TestChunk, std::unordered_map<std::string, Sta
 	{
 		if (TestChunk->BlockMap[i] != block_type::air)
 		{
-			std::string blockname = block_str[TestChunk->BlockMap[i]];
-			StaticProp block = StaticPropMap[blockname];
+			//std::string blockname = block_str[TestChunk->BlockMap[i]];
+			StaticProp block = StaticPropMap[block_str[TestChunk->BlockMap[i]]];
 
 			MapLoc chunkloc = to3D(i);
 
@@ -414,6 +414,8 @@ int main(int argc, char* argv[])
 	Ui3DRenderObjs ui3DRenderObjs;
 	UiWindow BBSWindow = Ui_BuildBlockSelectionUI(uiRenderObjs, ui3DRenderObjs, cursor.enum_vec_idx, TexturesMap, StaticPropMap, WIDTH, HEIGHT);
 
+	StaticRenderObjs staticRenderObjs;
+	bool scene_changed = true;
 	while (!quit)
 	{
 		lastUpdate = current;
@@ -645,6 +647,7 @@ int main(int argc, char* argv[])
 				int16_t x = -bx::round(camera_heading.x);
 				cursor.x = update_cursor(cursor.x, x, 0, chunksizex - 1);
 			}
+			scene_changed = true;
 		}
 
 		if (state[SDL_SCANCODE_DOWN] && !previous_keyState[SDL_SCANCODE_DOWN])
@@ -659,6 +662,7 @@ int main(int argc, char* argv[])
 				int16_t x = bx::round(camera_heading.x);
 				cursor.x = update_cursor(cursor.x, x, 0, chunksizex - 1);
 			}
+			scene_changed = true;
 		}
 
 		if (state[SDL_SCANCODE_RIGHT] && !previous_keyState[SDL_SCANCODE_RIGHT])
@@ -673,6 +677,7 @@ int main(int argc, char* argv[])
 				int16_t x = bx::round(camera_heading.x);
 				cursor.y = update_cursor(cursor.y, x, 0, chunksizey - 1);
 			}
+			scene_changed = true;
 		}
 
 		if (state[SDL_SCANCODE_LEFT] && !previous_keyState[SDL_SCANCODE_LEFT])
@@ -687,6 +692,7 @@ int main(int argc, char* argv[])
 				int16_t x = -bx::round(camera_heading.x);
 				cursor.y = update_cursor(cursor.y, x, 0, chunksizey - 1);
 			}
+			scene_changed = true;
 		}
 
 
@@ -717,6 +723,7 @@ int main(int argc, char* argv[])
 			BBSWindow.VertexBuffers.clear();
 
 			BBSWindow = Ui_BuildBlockSelectionUI(uiRenderObjs, ui3DRenderObjs, cursor.enum_vec_idx, TexturesMap, StaticPropMap, WIDTH, HEIGHT);
+			scene_changed = true;
 		}
 
 		if (state[SDL_SCANCODE_RIGHTBRACKET] && !previous_keyState[SDL_SCANCODE_RIGHTBRACKET])
@@ -745,21 +752,25 @@ int main(int argc, char* argv[])
 
 
 			BBSWindow = Ui_BuildBlockSelectionUI(uiRenderObjs, ui3DRenderObjs, cursor.enum_vec_idx, TexturesMap, StaticPropMap, WIDTH, HEIGHT);
+			scene_changed = true;
 		}
 
 		if (state[SDL_SCANCODE_P])
 		{
 			placeblock(TestChunk,cursor.cur_block, cursor.x, cursor.y, cursor.z);
+			scene_changed = true;
 		}
 
 		if (state[SDL_SCANCODE_MINUS] && !previous_keyState[SDL_SCANCODE_MINUS])
 		{
 			cursor.z = update_cursor(cursor.z, -1, 0, chunksizez - 1);
+			scene_changed = true;
 		}
 
 		if (state[SDL_SCANCODE_EQUALS] && !previous_keyState[SDL_SCANCODE_EQUALS])
 		{
 			cursor.z = update_cursor(cursor.z, 1, 0, chunksizez - 1);
+			scene_changed = true;
 		}
 
 
@@ -796,51 +807,61 @@ int main(int argc, char* argv[])
 		float result[4];
 		bx::vec4MulMtx(result,vec, testmat);
 
-		StaticRenderObjs staticRenderObjs;
-		//add cursor to staticrenderobjs
-		Position pos;
-		pos.position.x = cursor.x;
-		pos.position.y = cursor.y;
-		pos.position.z = cursor.z;
-
-		staticRenderObjs.pos.push_back(pos);
-
-
-		float mtx[16];// = new float[16];
-
-		bx::mtxRotateX(mtx, 0.0f);
-
-		// position x,y,z
-		mtx[12] = pos.position.x;
-		mtx[13] = pos.position.y;
-		mtx[14] = pos.position.z;
-
-		float scalemtx[16];
-		bx::mtxScale(scalemtx, 1.0);
-
-		std::string cursor_block_name = block_str[cursor.enum_vec_idx];
-
-		MatrixTransformStruct test;
-		//bx::mtxRotateZ(mtx, bx::kPi);
-		bx::mtxMul(test.mtx, scalemtx, mtx);
-		staticRenderObjs.matrixTransform.push_back(test);
-
-		if (cursor.enum_vec_idx == 0)
+		
+		if (scene_changed)
 		{
-			staticRenderObjs.vbh.push_back(StaticPropMap["Cursor"].p_Meshcontainer.vbh);
-			staticRenderObjs.ibh.push_back(StaticPropMap["Cursor"].p_Meshcontainer.ibh);
-			staticRenderObjs.texh.push_back(StaticPropMap["Cursor"].p_texture.texh);
+			staticRenderObjs.ibh.clear();
+			staticRenderObjs.matrixTransform.clear();
+			staticRenderObjs.pos.clear();
+			staticRenderObjs.texh.clear();
+			staticRenderObjs.vbh.clear();
+			//add cursor to staticrenderobjs
+			Position pos;
+			pos.position.x = cursor.x;
+			pos.position.y = cursor.y;
+			pos.position.z = cursor.z;
+
+			staticRenderObjs.pos.push_back(pos);
+
+
+			float mtx[16];// = new float[16];
+
+			bx::mtxRotateX(mtx, 0.0f);
+
+			// position x,y,z
+			mtx[12] = pos.position.x;
+			mtx[13] = pos.position.y;
+			mtx[14] = pos.position.z;
+
+			float scalemtx[16];
+			bx::mtxScale(scalemtx, 1.0);
+
+			std::string cursor_block_name = block_str[cursor.enum_vec_idx];
+
+			MatrixTransformStruct test;
+			//bx::mtxRotateZ(mtx, bx::kPi);
+			bx::mtxMul(test.mtx, scalemtx, mtx);
+			staticRenderObjs.matrixTransform.push_back(test);
+
+			if (cursor.enum_vec_idx == 0)
+			{
+				staticRenderObjs.vbh.push_back(StaticPropMap["test corner"].p_Meshcontainer.vbh);
+				staticRenderObjs.ibh.push_back(StaticPropMap["test corner"].p_Meshcontainer.ibh);
+				staticRenderObjs.texh.push_back(StaticPropMap["test corner"].p_texture.texh);
+			}
+			else
+			{
+				staticRenderObjs.vbh.push_back(StaticPropMap[cursor_block_name].p_Meshcontainer.vbh);
+				staticRenderObjs.ibh.push_back(StaticPropMap[cursor_block_name].p_Meshcontainer.ibh);
+				staticRenderObjs.texh.push_back(StaticPropMap[cursor_block_name].p_texture.texh);
+			}
+
+
+
+			BuildRenobjsFromMap(TestChunk, StaticPropMap, staticRenderObjs);
+			scene_changed = false;
 		}
-		else
-		{
-			staticRenderObjs.vbh.push_back(StaticPropMap[cursor_block_name].p_Meshcontainer.vbh);
-			staticRenderObjs.ibh.push_back(StaticPropMap[cursor_block_name].p_Meshcontainer.ibh);
-			staticRenderObjs.texh.push_back(StaticPropMap[cursor_block_name].p_texture.texh);
-		}
-
-
-
-		BuildRenobjsFromMap(TestChunk, StaticPropMap, staticRenderObjs);
+		
 
 
 

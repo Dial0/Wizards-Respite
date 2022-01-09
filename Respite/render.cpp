@@ -93,7 +93,8 @@ void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs,U
 			| BGFX_STATE_WRITE_Z
 			| BGFX_STATE_DEPTH_TEST_LESS
 			| BGFX_STATE_MSAA
-			| BGFX_STATE_CULL_CW
+			//| BGFX_STATE_CULL_CW
+			//| BGFX_STATE_BLEND_ALPHA
 			;
 
 		// Set render states.
@@ -171,7 +172,8 @@ void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs,U
 	for (size_t i = 0; i < ui3DRenderObjs.idxToHandle.size(); i++)
 	{
 		float testmtx[32];
-		float sinetest = bx::sin(bx::kPi2 * SDL_GetTicks() / 3000.0f) + 1.0f;
+		float sinetest = bx::sin(SDL_GetTicks() / 1800.0f) + 1.0f;
+		sinetest *= bx::kPi;
 		bx::mtxRotateZ(testmtx, sinetest);
 		memcpy(&testmtx[16], ui3DRenderObjs.perspectiveMatrixTransform[i].mtx, 16 * sizeof(float));
 
@@ -185,7 +187,8 @@ void renderFrame(camera cam, screen screen, StaticRenderObjs& staticRenderObjs,U
 			| BGFX_STATE_WRITE_Z
 			| BGFX_STATE_DEPTH_TEST_LESS
 			| BGFX_STATE_MSAA
-			| BGFX_STATE_CULL_CW
+			//| BGFX_STATE_CULL_CW
+			//| BGFX_STATE_BLEND_ALPHA
 			;
 
 		// Set render states.
