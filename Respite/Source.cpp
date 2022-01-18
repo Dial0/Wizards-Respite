@@ -318,7 +318,7 @@ int main(int argc, char* argv[])
 		, FontVertexData::ms_decl
 	);
 
-	StaticProp TestCube = StaticPropMap["Dirt"];
+	//StaticProp TestCube = StaticPropMap["Dirt"];
 
 	bgfx::UniformHandle s_texColor = bgfx::createUniform("s_texColor", bgfx::UniformType::Sampler);
 
@@ -845,9 +845,9 @@ int main(int argc, char* argv[])
 
 			if (cursor.enum_vec_idx == 0)
 			{
-				staticRenderObjs.vbh.push_back(StaticPropMap["test corner"].p_Meshcontainer.vbh);
-				staticRenderObjs.ibh.push_back(StaticPropMap["test corner"].p_Meshcontainer.ibh);
-				staticRenderObjs.texh.push_back(StaticPropMap["test corner"].p_texture.texh);
+				staticRenderObjs.vbh.push_back(StaticPropMap["Terrain Grass Dirt Single"].p_Meshcontainer.vbh);
+				staticRenderObjs.ibh.push_back(StaticPropMap["Terrain Grass Dirt Single"].p_Meshcontainer.ibh);
+				staticRenderObjs.texh.push_back(StaticPropMap["Terrain Grass Dirt Single"].p_texture.texh);
 			}
 			else
 			{

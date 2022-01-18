@@ -208,11 +208,11 @@ void rebuild_vbuff(VertexData* test_verticies, GameMesh testMesh, float aniframe
 		pcv.m_normal_z = testMesh.norm[i].Z;
 		if ((i % 3) == 0)
 		{
-			pcv.m_abgr = 0x00;
+			//pcv.m_abgr = 0x00;
 		}
 		else
 		{
-			pcv.m_abgr = 0xFFFFFFFF;
+			//pcv.m_abgr = 0xFFFFFFFF;
 		}
 
 		pcv.m_s = testMesh.tex[i].S;

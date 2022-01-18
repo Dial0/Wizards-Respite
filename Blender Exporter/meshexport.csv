@@ -1,13 +1,16 @@
 Name,FileName,Texture
-Dirt Block,Dirt_Block.mesh,TileMap.png
-Stone Block,Stone_Block.mesh,TileMap.png
-Grass Dirt Block,Grass_Dirt_Block.mesh,TileMap.png
-Grass Ramp,Grass_Ramp.mesh,TileMap.png
-Grass Ramp Corner,Grass_Ramp_Corner.mesh,TileMap.png
-Grass Block,Grass_Block.mesh,TileMap.png
-Tree Trunk,Tree_Trunk.mesh,TileMap.png
-Tree Ramp Corner,Tree_Ramp_Corner.mesh,TileMap.png
-Tree Block,Tree_Block.mesh,TileMap.png
-Tree Top,Tree_Top.mesh,TileMap.png
-Tree Ramp,Tree_Ramp.mesh,TileMap.png
-Tree Stump,Tree_Stump.mesh,TileMap.png
+Terrain Grass Dirt Both Sides,Terrain_Grass_Dirt_Both_Sides.mesh,TileMap.png
+Terrain Grass Dirt Center,Terrain_Grass_Dirt_Center.mesh,TileMap.png
+Terrain Grass Dirt Center Four Internal,Terrain_Grass_Dirt_Center_Four_Internal.mesh,TileMap.png
+Terrain Grass Dirt Center One Internal,Terrain_Grass_Dirt_Center_One_Internal.mesh,TileMap.png
+Terrain Grass Dirt Center Three Internal,Terrain_Grass_Dirt_Center_Three_Internal.mesh,TileMap.png
+Terrain Grass Dirt Center Two Internal,Terrain_Grass_Dirt_Center_Two_Internal.mesh,TileMap.png
+Terrain Grass Dirt Center Two Internal Opposite,Terrain_Grass_Dirt_Center_Two_Internal_Opposite.mesh,TileMap.png
+Terrain Grass Dirt Corner,Terrain_Grass_Dirt_Corner.mesh,TileMap.png
+Terrain Grass Dirt Corner Double,Terrain_Grass_Dirt_Corner_Double.mesh,TileMap.png
+Terrain Grass Dirt Side,Terrain_Grass_Dirt_Side.mesh,TileMap.png
+Terrain Grass Dirt Side Internal Left,Terrain_Grass_Dirt_Side_Internal_Left.mesh,TileMap.png
+Terrain Grass Dirt Side Internal Right,Terrain_Grass_Dirt_Side_Internal_Right.mesh,TileMap.png
+Terrain Grass Dirt Side Two Internal,Terrain_Grass_Dirt_Side_Two_Internal.mesh,TileMap.png
+Terrain Grass Dirt Single,Terrain_Grass_Dirt_Single.mesh,TileMap.png
+Terrain Grass Dirt Single End,Terrain_Grass_Dirt_Single_End.mesh,TileMap.png

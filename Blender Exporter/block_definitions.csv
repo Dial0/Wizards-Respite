@@ -1,14 +1,17 @@
 Name
 Air
-Dirt Block
-Stone Block
-Grass Dirt Block
-Grass Ramp
-Grass Ramp Corner
-Grass Block
-Tree Trunk
-Tree Ramp Corner
-Tree Top
-Tree Ramp
-Tree Stump
-Tree Block
+Terrain Grass Dirt Both Sides
+Terrain Grass Dirt Center
+Terrain Grass Dirt Center Four Internal
+Terrain Grass Dirt Center One Internal
+Terrain Grass Dirt Center Three Internal
+Terrain Grass Dirt Center Two Internal
+Terrain Grass Dirt Center Two Internal Opposite
+Terrain Grass Dirt Corner
+Terrain Grass Dirt Corner Double
+Terrain Grass Dirt Side
+Terrain Grass Dirt Side Internal Left
+Terrain Grass Dirt Side Internal Right
+Terrain Grass Dirt Side Two Internal
+Terrain Grass Dirt Single
+Terrain Grass Dirt Single End

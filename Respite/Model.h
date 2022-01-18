@@ -10,17 +10,19 @@ struct VertexData {
 	float m_normal_x;
 	float m_normal_y;
 	float m_normal_z;
-	uint32_t m_abgr;
 	float m_s;
 	float m_t;
+	uint8_t m_tileid_x;
+	uint8_t m_tileid_y;
+	uint16_t pad;
 
 	static void init() {
 		ms_decl
 			.begin()
 			.add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
 			.add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
-			.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, true)
 			.add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
+			.add(bgfx::Attrib::Color0, 4, bgfx::AttribType::Uint8, false,true)
 			.end();
 	};
 
