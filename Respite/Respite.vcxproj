@@ -92,7 +92,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>C:\bgfx\lib;C:\SDL2\SDL2-2.0.9\lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>psapi.lib;Setupapi.lib;version.lib;imm32.lib;winmm.lib;sdl2.lib;bxDebug.lib;bimgDebug.lib;bimg_decodeDebug.lib;bgfxDebug.lib;sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -109,7 +109,7 @@
       <AdditionalIncludeDirectories>C:\bgfx\include;C:\SDL2\SDL2-2.0.9\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>C:\SDL2\SDL2-2.0.9\lib\x86;C:\bgfx\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -146,6 +146,7 @@
   <ItemGroup>
     <ClCompile Include="Animation.cpp" />
     <ClCompile Include="AssetLoader.cpp" />
+    <ClCompile Include="BuildTerrain.cpp" />
     <ClCompile Include="loadMesh.cpp" />
     <ClCompile Include="Map.cpp" />
     <ClCompile Include="Model.cpp" />
@@ -157,6 +158,7 @@
     <ClCompile Include="UserInterface.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BuildTerrain.h" />
     <ClInclude Include="UserInterface.h" />
     <ClInclude Include="actor.h" />
     <ClInclude Include="ActorComponets.h" />

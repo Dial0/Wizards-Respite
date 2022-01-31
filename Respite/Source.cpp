@@ -21,7 +21,7 @@
 
 #include "map.h"
 
-
+#include "BuildTerrain.h"
 
 const int WIDTH = 1920;
 const int HEIGHT = 1080;
@@ -211,8 +211,41 @@ int BuildRenobjsFromMap(MapChunk* TestChunk, std::unordered_map<std::string, Sta
 	{
 		if (TestChunk->BlockMap[i] != block_type::air)
 		{
+
+
+
+			uint8_t surround = 0b00000000;
+			uint8_t shift = 0;
+
+			//y
+			//^
+			//|
+			//|
+			// - - -> x
+
+			static const int x_offsets[8] = { 0, 1, 1, 1, 0,-1,-1,-1 };
+			static const int y_offsets[8] = { 1, 1, 0,-1,-1,-1, 0, 1 };
+
+			for (size_t j = 0; j < 8; j++)
+			{
+				int x = x_offsets[j];
+				int y = y_offsets[j];
+
+				MapLoc blockpos = to3D(i);
+
+				uint32_t idx = to1D(blockpos.x + x, blockpos.y + y, blockpos.z);
+				if (TestChunk->BlockMap[idx] != air) {
+					surround = surround | (0b10000000 >> shift);
+				}
+				shift++;
+			}
+
+			BlockTypeStruct placing_block = get_block_type(surround);
+
+
+
 			//std::string blockname = block_str[TestChunk->BlockMap[i]];
-			StaticProp block = StaticPropMap[block_str[TestChunk->BlockMap[i]]];
+			StaticProp block = StaticPropMap[block_str[placing_block.block_type]];
 
 			MapLoc chunkloc = to3D(i);
 
@@ -226,7 +259,11 @@ int BuildRenobjsFromMap(MapChunk* TestChunk, std::unordered_map<std::string, Sta
 
 			float mtx[16];
 
-			bx::mtxRotateX(mtx, 0.0f);
+			uint8_t roation = placing_block.rotation/90;
+
+			float rad_rot = roation * bx::kPiHalf;
+
+			bx::mtxRotateZ(mtx, rad_rot);
 
 			// position x,y,z
 			mtx[12] = pos.position.x;
@@ -432,8 +469,8 @@ int main(int argc, char* argv[])
 		camera_heading.y = bx::cos(z_rot);
 
 		const bx::Vec3 at = { 0.0f, 0.0f, 0.0f };
-		const bx::Vec3 eye = { 0.0f, -camera_distance, camera_height };
-
+		//const bx::Vec3 eye = { 0.0f, -camera_distance, camera_height };
+		const bx::Vec3 eye = { 0.0f, -0.0000001f, camera_height };
 
 		const bx::Vec3 up = { 0.0f, 0.0f, 1.0f };
 
@@ -456,9 +493,16 @@ int main(int argc, char* argv[])
 
 		float proj[16];
 		float proj2[16];
-		bx::mtxProj(proj,30.0f,float(WIDTH) / float(HEIGHT),0.1f, 1000.0f, bgfx::getCaps()->homogeneousDepth, bx::Handness::Right);
+		bx::mtxProj(proj,60.0f,float(WIDTH) / float(HEIGHT),0.1f, 1000.0f, bgfx::getCaps()->homogeneousDepth, bx::Handness::Right);
 
 
+
+		float t_shear_mtx[16] = {1,0,0,0,
+								 0,1,0,0,
+								 -bx::sin(z_rot),bx::cos(z_rot),1,0,
+								 0,0,0,1};
+
+		bx::mtxMul(new_view, t_shear_mtx, new_view);
 		// Use this to render 3d onto UI layer
 		//float height = 1.0f / tan(bx::toRad(30.0f) * 0.5f);
 		//float width = height * 1.0f / (float(WIDTH) / float(HEIGHT));
@@ -757,7 +801,32 @@ int main(int argc, char* argv[])
 
 		if (state[SDL_SCANCODE_P])
 		{
-			placeblock(TestChunk,cursor.cur_block, cursor.x, cursor.y, cursor.z);
+			uint8_t surround = 0b00000000;
+			uint8_t shift = 0;
+
+			//y
+			//^
+			//|
+			//|
+			// - - -> x
+
+			static const int x_offsets[8] = { 0, 1, 1, 1, 0,-1,-1,-1 };
+			static const int y_offsets[8] = { 1, 1, 0,-1,-1,-1, 0, 1 };
+
+			for (size_t i = 0; i < 8; i++)
+			{
+				int x = x_offsets[i];
+				int y = y_offsets[i];
+
+				uint32_t idx = to1D(cursor.x+x, cursor.y + y, cursor.z);
+				if (TestChunk->BlockMap[idx] != air) {
+					surround = surround | (0b10000000 >> shift);
+				}
+				shift++;
+			}
+			
+			BlockTypeStruct placing_block = get_block_type(surround);
+			placeblock(TestChunk, placing_block.block_type, placing_block.rotation/90, cursor.x, cursor.y, cursor.z);
 			scene_changed = true;
 		}
 

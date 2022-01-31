@@ -28,6 +28,6 @@ struct MapLoc {
 
 
 int buildmap(MapChunk* Chunk);
-int placeblock(MapChunk* Chunk, block_type place_type, uint8_t x, uint8_t y, uint8_t z);
+int placeblock(MapChunk* Chunk, block_type place_type, uint8_t rotation, uint8_t x, uint8_t y, uint8_t z);
 MapLoc to3D(uint32_t idx);
 uint32_t to1D(uint8_t x, uint8_t y, uint8_t z);
